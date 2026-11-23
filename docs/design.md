@@ -125,6 +125,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm 
 | --- | --- | --- | --- |
 | GET | `/healthz` | Công khai | `200` khi tiến trình API sẵn sàng trả lời |
 | POST | `/api/auth/login` | Công khai | `200` với access token |
+| GET | `/api/auth/me` | Đã đăng nhập | `200` với ID, email và danh sách vai trò |
 | GET, POST | `/api/students` | Admin, Registrar | `200` danh sách hoặc `201` học viên mới |
 | GET | `/api/students/{id}` | Admin, Registrar | `200` chi tiết học viên |
 | GET, POST | `/api/classes` | Admin, Registrar | `200` danh sách hoặc `201` lớp mới |
@@ -149,6 +150,7 @@ Các request và response JSON dùng `camelCase`. Request tạo lớp gồm `nam
 | `403` | Tài khoản đã xác thực thiếu quyền |
 | `404` | Không tìm thấy tài nguyên hoặc mã tra cứu |
 | `409` | Ghi danh trùng hoặc yêu cầu tạo bản ghi đã tồn tại |
+| `429` | Vượt giới hạn đăng nhập theo địa chỉ IP |
 | `500` | Lỗi hệ thống |
 
 Phân tầng lỗi theo C4. Application báo lỗi nghiệp vụ theo loại. Presentation chuyển sang `ProblemDetails` với `status`, `title`, `detail`, `instance` và `traceId`. Với lỗi hệ thống, response công khai dùng thông báo chung. Log ở máy chủ giữ chi tiết phục vụ chẩn đoán.

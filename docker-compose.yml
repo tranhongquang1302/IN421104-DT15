@@ -6,6 +6,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Database__ApplyMigrations: "true"
+      JwtSettings__SigningKey: "${LANGCENTER_JWT_SIGNING_KEY:-}"
       DevelopmentAccounts__Password: "${LANGCENTER_DEMO_PASSWORD:-}"
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=langcenter;Username=langcenter;Password=langcenter-local"
     ports:
