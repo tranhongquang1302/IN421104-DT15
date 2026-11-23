@@ -1,0 +1,11 @@
+[Bb]in/
+[Oo]bj/
+.vs/
+.idea/
+TestResults/
+coverage/
+*.user
+*.suo
+.env
+.env.*
+!.env.example
