@@ -10,6 +10,7 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
 {
     public DbSet<Student> Students => Set<Student>();
     public DbSet<TrainingClass> TrainingClasses => Set<TrainingClass>();
+    public DbSet<Enrollment> Enrollments => Set<Enrollment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,6 +34,18 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
             entity.Property(trainingClass => trainingClass.Name).IsRequired().HasMaxLength(TrainingClass.MaxNameLength);
             entity.Property(trainingClass => trainingClass.TuitionFee).HasPrecision(14, 0);
             entity.Property(trainingClass => trainingClass.Status).HasConversion<string>().HasMaxLength(16);
+        });
+        modelBuilder.Entity<Enrollment>(entity =>
+        {
+            entity.ToTable("enrollments", table => table.HasCheckConstraint(
+                "CK_enrollments_TuitionDue", "\"TuitionDue\" >= 0"));
+            entity.HasKey(enrollment => enrollment.Id);
+            entity.Property(enrollment => enrollment.TuitionDue).HasPrecision(14, 0);
+            entity.HasOne<Student>().WithMany()
+                .HasForeignKey(enrollment => enrollment.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<TrainingClass>().WithMany()
+                .HasForeignKey(enrollment => enrollment.TrainingClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(enrollment => new { enrollment.StudentId, enrollment.TrainingClassId }).IsUnique();
         });
     }
 }

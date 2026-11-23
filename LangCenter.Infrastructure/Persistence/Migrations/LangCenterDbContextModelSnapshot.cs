@@ -22,6 +22,38 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.Enrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TrainingClassId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("TuitionDue")
+                        .HasPrecision(14)
+                        .HasColumnType("numeric(14,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingClassId");
+
+                    b.HasIndex("StudentId", "TrainingClassId")
+                        .IsUnique();
+
+                    b.ToTable("enrollments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_enrollments_TuitionDue", "\"TuitionDue\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("LangCenter.Domain.Entities.Student", b =>
                 {
                     b.Property<Guid>("Id")
@@ -273,6 +305,21 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("LangCenter.Domain.Entities.Enrollment", b =>
+                {
+                    b.HasOne("LangCenter.Domain.Entities.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LangCenter.Domain.Entities.TrainingClass", null)
+                        .WithMany()
+                        .HasForeignKey("TrainingClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
