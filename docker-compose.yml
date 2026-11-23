@@ -5,6 +5,8 @@ services:
       dockerfile: LangCenter.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Database__ApplyMigrations: "true"
+      DevelopmentAccounts__Password: "${LANGCENTER_DEMO_PASSWORD:-}"
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=langcenter;Username=langcenter;Password=langcenter-local"
     ports:
       - "127.0.0.1:8080:8080"

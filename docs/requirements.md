@@ -31,7 +31,7 @@ Luồng demo dùng Web API và Swagger. Đơn vị học phí là đồng Việt
 | --- | --- | --- |
 | Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp | Phạm Quốc Thanh |
 
-Đây là phương án dùng để lập kế hoạch cho commit 35–36. Nhóm xác nhận lựa chọn trước khi triển khai hai commit này.
+Đây là phương án dùng để lập kế hoạch cho mục 35–37. Nhóm xác nhận lựa chọn trước khi triển khai các mục này.
 
 ## Quy tắc nghiệp vụ
 

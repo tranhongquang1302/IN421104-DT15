@@ -46,12 +46,12 @@ dotnet test LangCenter.sln --configuration Release
 
 | Thành viên | Commit dự kiến | Phần việc |
 | --- | --- | --- |
-| Trần Hồng Quang | 1–12 | Phân tích, thiết kế, khung solution, PostgreSQL, Swagger, kiểm thử nền, CI và Docker Compose |
-| Võ Văn Bảo Quốc | 13–24 | Đăng nhập, phân quyền, học viên và tạo lớp |
-| Phạm Quốc Thanh | 25–36 | Ghi danh, khai giảng, học phí, dự thi, chức năng mở rộng và kiểm thử |
-| Huỳnh Quốc Thịnh | 37–48 | Chứng chỉ QR, độ bao phủ, dữ liệu demo, README và minh chứng |
+| Trần Hồng Quang | 1–18 | Phân tích, thiết kế, nền dự án, xác thực, phân quyền và quản lý học viên |
+| Võ Văn Bảo Quốc | 19–28 | Quản lý lớp, ghi danh, khai giảng đủ sĩ số và kiểm thử |
+| Phạm Quốc Thanh | 29–38 | Học phí, điều kiện dự thi, chức năng mở rộng và kiểm thử |
+| Huỳnh Quốc Thịnh | 39–48 | Chứng chỉ QR, độ bao phủ, dữ liệu demo, README và minh chứng |
 
-Tài khoản mẫu cho từng vai trò được bổ sung khi có dữ liệu demo.
+Các khoảng số là mục trong kế hoạch 48 công việc. Commit bổ sung để cập nhật danh sách thành viên được tính riêng.
 
 ## Quy trình làm việc
 
