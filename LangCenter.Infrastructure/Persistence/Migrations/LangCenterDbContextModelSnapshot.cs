@@ -43,6 +43,42 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.ToTable("students", (string)null);
                 });
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.TrainingClass", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("MinimumEnrollment")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<decimal>("TuitionFee")
+                        .HasPrecision(14)
+                        .HasColumnType("numeric(14,0)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("training_classes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_training_classes_MinimumEnrollment", "\"MinimumEnrollment\" > 0");
+
+                            t.HasCheckConstraint("CK_training_classes_TuitionFee", "\"TuitionFee\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("LangCenter.Infrastructure.Persistence.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
