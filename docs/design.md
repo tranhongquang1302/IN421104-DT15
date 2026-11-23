@@ -44,7 +44,7 @@ classDiagram
         +Guid TrainingClassId
         +decimal TuitionDue
         +DateTime EnrolledAt
-        +Create(studentId, trainingClassId, tuitionDue) Enrollment
+        +Create(studentId, trainingClass, enrolledAt) Enrollment
     }
     class Payment {
         +Guid Id
@@ -117,7 +117,7 @@ erDiagram
 
 Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
 
-Ứng dụng phải giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch khi có yêu cầu đồng thời. Ghi danh và khai giảng cần phối hợp theo lớp. Ghi nhận thanh toán và xác nhận dự thi cần phối hợp theo lượt ghi danh.
+Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán và xác nhận dự thi cần phối hợp theo lượt ghi danh.
 
 ## Hợp đồng API dự kiến
 
