@@ -35,8 +35,9 @@ classDiagram
         +int MinimumEnrollment
         +decimal TuitionFee
         +ClassStatus Status
+        +DateTime? StartedAt
         +Create(name, minimumEnrollment, tuitionFee) TrainingClass
-        +Launch(enrollmentCount)
+        +Launch(enrollmentCount, startedAt)
     }
     class Enrollment {
         +Guid Id
@@ -44,7 +45,7 @@ classDiagram
         +Guid TrainingClassId
         +decimal TuitionDue
         +DateTime EnrolledAt
-        +Create(studentId, trainingClassId, tuitionDue) Enrollment
+        +Create(studentId, trainingClass, enrolledAt) Enrollment
     }
     class Payment {
         +Guid Id
@@ -77,7 +78,7 @@ classDiagram
     Enrollment "1" --> "0..1" Certificate
 ```
 
-`TrainingClass.Launch(enrollmentCount)` kiểm tra trạng thái và ngưỡng sĩ số. Handler của Application lấy số ghi danh từ repository và điều phối việc lưu trạng thái. Tương tự, handler dự thi lấy tổng học phí đã thu trước khi áp dụng QT05.
+`TrainingClass.Launch(enrollmentCount, startedAt)` kiểm tra trạng thái và ngưỡng sĩ số. Handler của Application lấy số ghi danh từ repository và điều phối việc lưu trạng thái. Tương tự, handler dự thi lấy tổng học phí đã thu trước khi áp dụng QT05.
 
 ## Quy ước từ sáu solution tham khảo
 
@@ -115,9 +116,9 @@ erDiagram
     ENROLLMENTS ||--o| CERTIFICATES : earns
 ```
 
-Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
+Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính xác đến micro giây cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
 
-Ứng dụng phải giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch khi có yêu cầu đồng thời. Ghi danh và khai giảng cần phối hợp theo lớp. Ghi nhận thanh toán và xác nhận dự thi cần phối hợp theo lượt ghi danh.
+Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán và xác nhận dự thi cần phối hợp theo lượt ghi danh.
 
 ## Hợp đồng API dự kiến
 
@@ -129,6 +130,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm 
 | GET, POST | `/api/students` | Admin, Registrar | `200` danh sách hoặc `201` học viên mới |
 | GET | `/api/students/{id}` | Admin, Registrar | `200` chi tiết học viên |
 | GET, POST | `/api/classes` | Admin, Registrar | `200` danh sách hoặc `201` lớp mới |
+| GET | `/api/classes/{id}` | Admin, Registrar | `200` chi tiết lớp |
 | POST | `/api/classes/{classId}/enrollments` | Admin, Registrar | `201` lượt ghi danh mới |
 | POST | `/api/classes/{id}/launch` | Admin, Registrar | `200` lớp đã khai giảng |
 | POST | `/api/enrollments/{id}/payments` | Admin, Cashier | `201` khoản thanh toán mới |
