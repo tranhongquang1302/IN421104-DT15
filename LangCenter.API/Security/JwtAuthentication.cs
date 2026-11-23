@@ -18,6 +18,7 @@ public static class JwtAuthentication
             .Configure<JwtSettings>((options, settings) =>
             {
                 options.MapInboundClaims = false;
+                options.IncludeErrorDetails = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
