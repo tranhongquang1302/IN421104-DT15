@@ -9,4 +9,8 @@
     <ProjectReference Include="..\LangCenter.Application\LangCenter.Application.csproj" />
     <ProjectReference Include="..\LangCenter.Infrastructure\LangCenter.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
+  </ItemGroup>
 </Project>
