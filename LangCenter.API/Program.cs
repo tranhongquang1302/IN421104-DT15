@@ -2,8 +2,10 @@ using System.Threading.RateLimiting;
 using LangCenter.API.Middleware;
 using LangCenter.API.Security;
 using LangCenter.Application.Auth;
+using LangCenter.Domain.Interfaces;
 using LangCenter.Infrastructure.Auth;
 using LangCenter.Infrastructure.Persistence;
+using LangCenter.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +47,7 @@ builder.Services.AddIdentityCore<AppUser>(options =>
     .AddEntityFrameworkStores<LangCenterDbContext>();
 builder.Services.AddScoped<IPasswordHasher<AppUser>, IdentityArgon2Hasher>();
 builder.Services.AddScoped<DbSeeder>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
