@@ -32,13 +32,40 @@ dotnet run --project LangCenter.API --launch-profile http
 
 Mở [Swagger ở cổng 5080](http://localhost:5080/swagger). Ở mốc khung dự án, Swagger và `/healthz` có thể chạy trước khi kết nối cơ sở dữ liệu. Cấu hình biến môi trường `ConnectionStrings__DefaultConnection` khi cần truy cập PostgreSQL từ API chạy trực tiếp.
 
+### Đăng nhập trong Swagger
+
+Đặt mật khẩu demo trước khi khởi động Docker Compose. Trong PowerShell 7, có thể nhập mật khẩu mà không hiển thị bằng lệnh sau.
+
+```powershell
+$env:LANGCENTER_DEMO_PASSWORD = Read-Host 'Mật khẩu demo' -MaskInput
+docker compose up -d --build --wait
+```
+
+Mật khẩu có ít nhất 12 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt. Lần đầu API tạo ba tài khoản ở môi trường Development và lưu mật khẩu dạng băm trong PostgreSQL.
+
+| Vai trò | Email demo |
+| --- | --- |
+| Admin | `admin@langcenter.local` |
+| Registrar | `registrar@langcenter.local` |
+| Cashier | `cashier@langcenter.local` |
+
+Gọi `POST /api/auth/login` với email và mật khẩu vừa đặt, sao chép `accessToken` rồi dán vào nút **Authorize** trên Swagger. Gọi `GET /api/auth/me` để xem vai trò. Token mặc định có hiệu lực 30 phút. Admin và Registrar có thể tạo và xem học viên qua `/api/students`.
+
+Docker Compose tự áp dụng migration cho môi trường Development. Khi chạy API ngoài Docker, dùng `dotnet tool restore` rồi áp dụng migration bằng lệnh sau sau khi cấu hình `ConnectionStrings__DefaultConnection`.
+
+```bash
+dotnet ef database update --project LangCenter.Infrastructure --startup-project LangCenter.API
+```
+
+Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi động. Dùng biến môi trường `JwtSettings__SigningKey` cho API hoặc `LANGCENTER_JWT_SIGNING_KEY` cho Docker Compose để đặt khóa ổn định. Production yêu cầu khóa ngẫu nhiên ít nhất 32 byte mã hóa Base64.
+
 ## Kiểm thử và CI
 
 ```bash
 dotnet test LangCenter.sln --configuration Release
 ```
 
-[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test hiện kiểm tra khởi động API, Swagger, cấu hình provider PostgreSQL và lỗi `ProblemDetails`.
+[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền và lưu học viên. Các ca đăng nhập và học viên dùng SQLite trong bộ nhớ để chạy độc lập.
 
 [Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`.
 

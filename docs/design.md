@@ -139,7 +139,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm 
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
 | GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp nếu nhóm chọn chức năng này |
 
-Các request và response JSON dùng `camelCase`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
+Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
 
 ### Lỗi HTTP
 
