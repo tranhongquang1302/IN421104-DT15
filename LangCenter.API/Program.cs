@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using LangCenter.API.Middleware;
 using LangCenter.API.Security;
 using LangCenter.Application.Auth;
+using LangCenter.Application.Classes;
 using LangCenter.Application.Students;
 using LangCenter.Domain.Interfaces;
 using LangCenter.Infrastructure.Auth;
@@ -49,6 +50,9 @@ builder.Services.AddIdentityCore<AppUser>(options =>
 builder.Services.AddScoped<IPasswordHasher<AppUser>, IdentityArgon2Hasher>();
 builder.Services.AddScoped<DbSeeder>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<ITrainingClassRepository, TrainingClassRepository>();
+builder.Services.AddScoped<CreateClassCommandHandler>();
+builder.Services.AddScoped<GetClassByIdQueryHandler>();
 builder.Services.AddScoped<CreateStudentCommandHandler>();
 builder.Services.AddScoped<GetStudentsQueryHandler>();
 builder.Services.AddScoped<GetStudentByIdQueryHandler>();

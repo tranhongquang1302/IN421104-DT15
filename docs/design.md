@@ -129,6 +129,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC cho thời điểm 
 | GET, POST | `/api/students` | Admin, Registrar | `200` danh sách hoặc `201` học viên mới |
 | GET | `/api/students/{id}` | Admin, Registrar | `200` chi tiết học viên |
 | GET, POST | `/api/classes` | Admin, Registrar | `200` danh sách hoặc `201` lớp mới |
+| GET | `/api/classes/{id}` | Admin, Registrar | `200` chi tiết lớp |
 | POST | `/api/classes/{classId}/enrollments` | Admin, Registrar | `201` lượt ghi danh mới |
 | POST | `/api/classes/{id}/launch` | Admin, Registrar | `200` lớp đã khai giảng |
 | POST | `/api/enrollments/{id}/payments` | Admin, Cashier | `201` khoản thanh toán mới |
