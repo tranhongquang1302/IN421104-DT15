@@ -38,4 +38,16 @@ public class TrainingClass
             Status = ClassStatus.Open
         };
     }
+
+    public void Launch(int enrollmentCount, DateTime startedAt)
+    {
+        if (Status != ClassStatus.Open)
+            throw new InvalidOperationException("Lớp đã khai giảng.");
+        if (enrollmentCount < MinimumEnrollment)
+            throw new InvalidOperationException(
+                $"Lớp chưa đủ sĩ số để khai giảng ({enrollmentCount}/{MinimumEnrollment}).");
+
+        Status = ClassStatus.Started;
+        StartedAt = startedAt.AddTicks(-(startedAt.Ticks % TimeSpan.TicksPerMicrosecond));
+    }
 }

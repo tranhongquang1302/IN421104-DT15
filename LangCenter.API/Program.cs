@@ -58,6 +58,7 @@ builder.Services.AddScoped<EnrollStudentCommandHandler>();
 builder.Services.AddScoped<CreateClassCommandHandler>();
 builder.Services.AddScoped<GetClassesQueryHandler>();
 builder.Services.AddScoped<GetClassByIdQueryHandler>();
+builder.Services.AddScoped<LaunchClassCommandHandler>();
 builder.Services.AddScoped<CreateStudentCommandHandler>();
 builder.Services.AddScoped<GetStudentsQueryHandler>();
 builder.Services.AddScoped<GetStudentByIdQueryHandler>();

@@ -11,5 +11,8 @@ public class EnrollmentRepository(LangCenterDbContext db) : IEnrollmentRepositor
         db.Enrollments.AnyAsync(enrollment =>
             enrollment.TrainingClassId == classId && enrollment.StudentId == studentId, ct);
 
+    public Task<int> CountByClassAsync(Guid classId, CancellationToken ct = default) =>
+        db.Enrollments.CountAsync(enrollment => enrollment.TrainingClassId == classId, ct);
+
     public void Add(Enrollment enrollment) => db.Enrollments.Add(enrollment);
 }
