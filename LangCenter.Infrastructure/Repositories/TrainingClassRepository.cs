@@ -15,4 +15,10 @@ public class TrainingClassRepository(LangCenterDbContext db) : ITrainingClassRep
 
     public Task<TrainingClass?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         db.TrainingClasses.AsNoTracking().FirstOrDefaultAsync(trainingClass => trainingClass.Id == id, ct);
+
+    public async Task<IReadOnlyList<TrainingClass>> GetAllAsync(CancellationToken ct = default) =>
+        await db.TrainingClasses.AsNoTracking()
+            .OrderBy(trainingClass => trainingClass.Name)
+            .ThenBy(trainingClass => trainingClass.Id)
+            .ToListAsync(ct);
 }

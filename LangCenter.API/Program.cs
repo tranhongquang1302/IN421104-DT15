@@ -52,6 +52,7 @@ builder.Services.AddScoped<DbSeeder>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITrainingClassRepository, TrainingClassRepository>();
 builder.Services.AddScoped<CreateClassCommandHandler>();
+builder.Services.AddScoped<GetClassesQueryHandler>();
 builder.Services.AddScoped<GetClassByIdQueryHandler>();
 builder.Services.AddScoped<CreateStudentCommandHandler>();
 builder.Services.AddScoped<GetStudentsQueryHandler>();

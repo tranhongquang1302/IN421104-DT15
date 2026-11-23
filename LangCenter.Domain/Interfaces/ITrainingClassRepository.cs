@@ -6,4 +6,5 @@ public interface ITrainingClassRepository
 {
     Task AddAsync(TrainingClass trainingClass, CancellationToken ct = default);
     Task<TrainingClass?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<TrainingClass>> GetAllAsync(CancellationToken ct = default);
 }

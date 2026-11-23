@@ -14,6 +14,7 @@ namespace LangCenter.API.Controllers;
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class ClassesController(
     CreateClassCommandHandler createClass,
+    GetClassesQueryHandler getClasses,
     GetClassByIdQueryHandler getClassById) : ControllerBase
 {
     [HttpPost]
@@ -25,6 +26,11 @@ public class ClassesController(
             new CreateClassCommand(request.Name, request.MinimumEnrollment, request.TuitionFee!.Value), ct);
         return CreatedAtAction(nameof(GetById), new { id = trainingClass.Id }, trainingClass);
     }
+
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<TrainingClassDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TrainingClassDto>>> GetAll(CancellationToken ct) =>
+        Ok(await getClasses.HandleAsync(ct));
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<TrainingClassDto>(StatusCodes.Status200OK)]
