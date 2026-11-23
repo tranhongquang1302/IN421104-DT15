@@ -59,13 +59,20 @@ dotnet ef database update --project LangCenter.Infrastructure --startup-project 
 
 Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi động. Dùng biến môi trường `JwtSettings__SigningKey` cho API hoặc `LANGCENTER_JWT_SIGNING_KEY` cho Docker Compose để đặt khóa ổn định. Production yêu cầu khóa ngẫu nhiên ít nhất 32 byte mã hóa Base64.
 
+### Tạo lớp, ghi danh và khai giảng
+
+1. Đăng nhập bằng tài khoản Admin hoặc Registrar và bật **Authorize**.
+2. Gọi `POST /api/classes` với `name`, `minimumEnrollment` và `tuitionFee`. Dùng ID từ kết quả để xem chi tiết tại `GET /api/classes/{id}`.
+3. Tạo học viên bằng `POST /api/students`. Gọi `POST /api/classes/{classId}/enrollments` với `studentId`. Kết quả ghi lại số tiền phải thu ở trường `tuitionDue`.
+4. Gọi `POST /api/classes/{id}/launch`. Lớp dưới ngưỡng trả `400`; lớp vừa đủ hoặc vượt ngưỡng chuyển sang `Started`. Ghi danh mới sau khi khai giảng cũng trả `400`.
+
 ## Kiểm thử và CI
 
 ```bash
 dotnet test LangCenter.sln --configuration Release
 ```
 
-[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền và lưu học viên. Các ca đăng nhập và học viên dùng SQLite trong bộ nhớ để chạy độc lập.
+[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lưu học viên, lớp học, ghi danh và khai giảng. Các ca đăng nhập và học viên dùng SQLite trong bộ nhớ để chạy độc lập.
 
 [Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`.
 

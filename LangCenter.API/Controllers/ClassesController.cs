@@ -15,7 +15,8 @@ namespace LangCenter.API.Controllers;
 public class ClassesController(
     CreateClassCommandHandler createClass,
     GetClassesQueryHandler getClasses,
-    GetClassByIdQueryHandler getClassById) : ControllerBase
+    GetClassByIdQueryHandler getClassById,
+    LaunchClassCommandHandler launchClass) : ControllerBase
 {
     [HttpPost]
     [ProducesResponseType<TrainingClassDto>(StatusCodes.Status201Created)]
@@ -37,6 +38,13 @@ public class ClassesController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TrainingClassDto>> GetById(Guid id, CancellationToken ct) =>
         Ok(await getClassById.HandleAsync(new GetClassByIdQuery(id), ct));
+
+    [HttpPost("{id:guid}/launch")]
+    [ProducesResponseType<TrainingClassDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TrainingClassDto>> Launch(Guid id, CancellationToken ct) =>
+        Ok(await launchClass.HandleAsync(new LaunchClassCommand(id), ct));
 }
 
 public record CreateClassRequest(
