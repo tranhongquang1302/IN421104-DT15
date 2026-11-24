@@ -8,12 +8,12 @@ Trung tâm cần theo dõi lớp dự kiến, học viên ghi danh và tiền h�
 
 | Vai trò | Quyền nghiệp vụ |
 | --- | --- |
-| Quản trị viên (`Admin`) | Quản lý tài khoản và có toàn quyền thao tác nghiệp vụ |
+| Quản trị viên (`Admin`) | Tạo và xem hồ sơ học viên, tạo và xem lớp, ghi danh và khai giảng, tra cứu ghi danh, ghi nhận và xem học phí, xem báo cáo công nợ, xác nhận dự thi và cấp chứng chỉ |
 | Giáo vụ (`Registrar`) | Quản lý học viên, tạo và xem lớp, ghi danh, khai giảng, xác nhận dự thi và cấp chứng chỉ |
 | Thu ngân (`Cashier`) | Ghi nhận thanh toán, xem số dư học phí và xem báo cáo công nợ theo lớp |
 | Người tra cứu | Xem thông tin xác minh chứng chỉ bằng mã tra cứu công khai |
 
-Tài khoản đăng nhập là tài khoản nhân viên. Học viên được lưu thành hồ sơ phục vụ ghi danh. Trường phân quyền hiện thực theo ma trận API trong tài liệu thiết kế.
+Tài khoản đăng nhập là tài khoản nhân viên. Ba tài khoản demo được tạo khi khởi động trong môi trường Development theo hướng dẫn trong README. Học viên được lưu thành hồ sơ phục vụ ghi danh. Quyền của từng vai trò được quy định trong ma trận API của tài liệu thiết kế.
 
 ## Phạm vi cốt lõi
 
