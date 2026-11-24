@@ -62,6 +62,7 @@ builder.Services.AddScoped<IExamAdmissionRepository, ExamAdmissionRepository>();
 builder.Services.AddScoped<ConfirmExamAdmissionCommandHandler>();
 builder.Services.AddScoped<ICertificateRepository, CertificateRepository>();
 builder.Services.AddScoped<IssueCertificateCommandHandler>();
+builder.Services.AddScoped<ICertificateVerificationQuery, CertificateVerificationQuery>();
 builder.Services.AddScoped<RecordPaymentCommandHandler>();
 builder.Services.AddScoped<GetTuitionBalanceQueryHandler>();
 builder.Services.AddScoped<IEnrollmentLookupQuery, EnrollmentLookupQuery>();
