@@ -32,6 +32,15 @@ function Invoke-DemoRequest {
     Invoke-RestMethod @options
 }
 
+function Add-DemoEnrollment {
+    param([guid]$ClassId, [hashtable]$Student, [string]$Token)
+
+    $profile = Invoke-DemoRequest -Method Post -Path '/api/students' -Token $Token -Body $Student
+    Invoke-DemoRequest -Method Post -Path "/api/classes/$ClassId/enrollments" -Token $Token -Body @{
+        studentId = $profile.id
+    }
+}
+
 $null = Invoke-DemoRequest -Method Get -Path '/healthz'
 $registrar = (Invoke-DemoRequest -Method Post -Path '/api/auth/login' -Body @{
     email = 'registrar@langcenter.local'
@@ -54,10 +63,7 @@ $students = @(
     @{ fullName = 'Demo Student B'; email = "demo-b-$runId@example.test" }
 )
 $enrollments = foreach ($student in $students) {
-    $profile = Invoke-DemoRequest -Method Post -Path '/api/students' -Token $registrar -Body $student
-    Invoke-DemoRequest -Method Post -Path "/api/classes/$classId/enrollments" -Token $registrar -Body @{
-        studentId = $profile.id
-    }
+    Add-DemoEnrollment -ClassId $classId -Student $student -Token $registrar
 }
 
 $null = Invoke-DemoRequest -Method Post -Path "/api/classes/$classId/launch" -Token $registrar
@@ -73,10 +79,56 @@ $null = Invoke-DemoRequest -Method Post -Path "/api/enrollments/$eligibleId/paym
 }
 $null = Invoke-DemoRequest -Method Post -Path "/api/enrollments/$eligibleId/exam-admission" -Token $registrar
 
+$underfilledClass = Invoke-DemoRequest -Method Post -Path '/api/classes' -Token $registrar -Body @{
+    name = "Demo Tiếng Nhật N5 $runId"
+    minimumEnrollment = 2
+    tuitionFee = 850000
+}
+$underfilledEnrollment = Add-DemoEnrollment -ClassId $underfilledClass.id -Token $registrar -Student @{
+    fullName = 'Lê Minh An (Demo)'
+    email = "demo-n5-$runId@example.test"
+}
+$waitingStudent = Invoke-DemoRequest -Method Post -Path '/api/students' -Token $registrar -Body @{
+    fullName = 'Trần Mai Linh (Demo)'
+    email = "demo-waiting-$runId@example.test"
+}
+
+$certificateClass = Invoke-DemoRequest -Method Post -Path '/api/classes' -Token $registrar -Body @{
+    name = "Demo Tiếng Anh B1 $runId"
+    minimumEnrollment = 1
+    tuitionFee = 1200000
+}
+$certificateStudent = @{
+    fullName = 'Nguyễn Minh Anh (Demo)'
+    email = "demo-b1-$runId@example.test"
+}
+$certificateEnrollment = Add-DemoEnrollment -ClassId $certificateClass.id -Student $certificateStudent -Token $registrar
+$certificateEnrollmentId = $certificateEnrollment.id
+$null = Invoke-DemoRequest -Method Post -Path "/api/classes/$($certificateClass.id)/launch" -Token $registrar
+$null = Invoke-DemoRequest -Method Post -Path "/api/enrollments/$certificateEnrollmentId/payments" -Token $cashier -Body @{
+    amount = $certificateEnrollment.tuitionDue
+    requestId = [guid]::NewGuid()
+}
+$null = Invoke-DemoRequest -Method Post -Path "/api/enrollments/$certificateEnrollmentId/exam-admission" -Token $registrar
+$certificate = Invoke-DemoRequest -Method Post -Path "/api/enrollments/$certificateEnrollmentId/certificate" -Token $registrar -Body @{
+    completionConfirmed = $true
+}
+$publicVerificationUrl = $certificate.verifyUrl -replace '/api/certificates/verify/([^/?#]+)$', '/certificates/verify/$1'
+
 [pscustomobject]@{
     ClassId = $classId
     PartialEnrollmentId = $partialId
     PartialStudentEmail = $students[0].email
     EligibleEnrollmentId = $eligibleId
     EligibleStudentEmail = $students[1].email
+    UnderfilledClassId = $underfilledClass.id
+    UnderfilledEnrollmentId = $underfilledEnrollment.id
+    WaitingStudentId = $waitingStudent.id
+    WaitingStudentEmail = $waitingStudent.email
+    CertificateClassId = $certificateClass.id
+    CertificateEnrollmentId = $certificateEnrollmentId
+    CertificateStudentEmail = $certificateStudent.email
+    CertificateId = $certificate.id
+    CertificateLookupCode = $certificate.lookupCode
+    CertificateVerifyUrl = $publicVerificationUrl
 }

@@ -88,9 +88,25 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 4. Đăng nhập bằng tài khoản Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/exam-admission`. Lớp phải ở trạng thái `Started` và dư nợ phải bằng 0. Khi học viên còn nợ, API trả `400` kèm `ProblemDetails`.
 5. Đăng nhập bằng tài khoản Cashier hoặc Admin. Gọi `GET /api/reports/classes/{id}/tuition` để xem số phải thu, đã thu và còn nợ của lớp cùng chi tiết từng lượt ghi danh.
 
+### Tạo dữ liệu demo
+
+Sau khi Docker Compose sẵn sàng, chạy trong thư mục gốc của repo.
+
+```powershell
+pwsh -File scripts/Seed-Demo.ps1
+```
+
+Mỗi lần chạy tạo ba lớp và năm học viên demo với email riêng.
+
+| Kịch bản | Kết quả dùng để demo |
+| --- | --- |
+| Demo English A1 | Lớp đã khai giảng. `PartialEnrollmentId` còn nợ 600 đồng. `EligibleEnrollmentId` đã đóng đủ, được xác nhận dự thi và sẵn sàng để cấp chứng chỉ. |
+| Demo Tiếng Nhật N5 | Lớp `UnderfilledClassId` có 1 trong 2 học viên cần thiết. Có thể thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm. |
+| Demo Tiếng Anh B1 | Học viên đã đóng đủ, được xác nhận dự thi và đã có chứng chỉ. Mở `CertificateVerifyUrl` để xem kết quả tra cứu công khai. |
+
 ### Cấp chứng chỉ và tra cứu qua QR
 
-1. Dùng lớp và học viên đã tạo trong các bước trên hoặc chạy `pwsh -File scripts/Seed-Demo.ps1` sau khi Docker Compose sẵn sàng. Script tạo một lớp có hai lượt ghi danh. `PartialEnrollmentId` còn nợ 600 đồng và `EligibleEnrollmentId` đã đóng đủ, có xác nhận đủ điều kiện dự thi.
+1. Dùng học viên đủ điều kiện đã tạo ở các bước trên hoặc dùng `EligibleEnrollmentId` từ script demo.
 2. Đăng nhập bằng Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/certificate` cho `EligibleEnrollmentId` với `{"completionConfirmed": true}`. API trả `201` cùng `id` chứng chỉ và `verifyUrl`. Lượt ghi danh thiếu xác nhận dự thi hoặc xác nhận hoàn thành trả `400`. Cấp lần hai trả `409`.
 3. Gọi `GET /api/certificates/{id}/qr` với **ID chứng chỉ** và tải ảnh PNG trong Swagger. Quét ảnh QR để mở trang tra cứu chứng chỉ có họ tên học viên, lớp và ngày cấp. Trường `verifyUrl` trong phản hồi API vẫn mở kết quả JSON. Mã không hợp lệ trả `404`.
 
