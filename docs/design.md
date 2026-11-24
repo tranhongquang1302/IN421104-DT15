@@ -103,7 +103,7 @@ Bài C2 dùng Strategy cho nhiều định dạng báo cáo và Factory để ch
 
 | Bảng | Cột nghiệp vụ chính | Ràng buộc |
 | --- | --- | --- |
-| `students` | `Id`, `FullName`, `Email` | Khóa chính `Id` |
+| `students` | `Id`, `FullName`, `Email` | Khóa chính `Id`, chỉ mục duy nhất trên email đã chuẩn hóa |
 | `training_classes` | `Id`, `Name`, `MinimumEnrollment`, `TuitionFee`, `Status`, `StartedAt` | Sĩ số tối thiểu dương, học phí không âm |
 | `enrollments` | `Id`, `StudentId`, `TrainingClassId`, `TuitionDue`, `EnrolledAt` | Khóa ngoại đến học viên và lớp, duy nhất theo cặp `StudentId` và `TrainingClassId` |
 | `payments` | `Id`, `EnrollmentId`, `Amount`, `RequestId`, `PaidAt` | Khóa ngoại đến ghi danh, số tiền dương, mã yêu cầu duy nhất trong mỗi lượt ghi danh nếu được cung cấp |
@@ -122,6 +122,8 @@ erDiagram
 Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính xác đến micro giây cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
 
 Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán khóa bản ghi lượt ghi danh trong PostgreSQL trước khi tính công nợ và lưu khoản thu. Xác nhận dự thi và cấp chứng chỉ dùng cùng cơ chế khóa theo lượt ghi danh. Chứng chỉ yêu cầu xác nhận hoàn thành khóa và bản ghi đủ điều kiện dự thi. Hai chỉ mục duy nhất trên `EnrollmentId` và `LookupCode` bảo vệ QT06.
+
+Tạo học viên và tra cứu ghi danh dùng chung cách chuẩn hóa email. PostgreSQL dùng chỉ mục duy nhất để bảo vệ QT07, kể cả khi hai yêu cầu tạo hồ sơ đến đồng thời.
 
 ## Hợp đồng API
 
@@ -157,7 +159,7 @@ Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. 
 | `401` | Thiếu thông tin xác thực hợp lệ hoặc đăng nhập sai |
 | `403` | Tài khoản đã xác thực thiếu quyền |
 | `404` | Không tìm thấy tài nguyên hoặc mã tra cứu |
-| `409` | Ghi danh trùng hoặc yêu cầu tạo bản ghi đã tồn tại |
+| `409` | Email học viên đã được sử dụng, ghi danh trùng hoặc yêu cầu tạo bản ghi đã tồn tại |
 | `429` | Vượt giới hạn đăng nhập theo địa chỉ IP |
 | `500` | Lỗi hệ thống |
 

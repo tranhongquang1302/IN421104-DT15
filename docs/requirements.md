@@ -43,6 +43,7 @@ Báo cáo công nợ theo lớp là chức năng mở rộng đã được tri�
 | QT04 | Học phí đã thu là tổng các khoản thanh toán của lượt ghi danh. Mỗi khoản là số nguyên dương và tối đa bằng số còn nợ tại thời điểm ghi nhận. | Đóng một phần giảm số dư; đóng đủ đưa số dư về 0; số 0, số âm và số vượt công nợ bị từ chối. |
 | QT05 | Giáo vụ chỉ xác nhận cho học viên dự thi cuối khóa khi lớp đã khai giảng và lượt ghi danh có số dư học phí bằng 0. | Còn nợ thì bị từ chối và không có bản ghi xác nhận; đóng đủ thì được xác nhận nếu lớp đã khai giảng. |
 | QT06 | Một lượt ghi danh có tối đa một chứng chỉ. Giáo vụ xác nhận học viên đã hoàn thành khóa trước khi cấp và hệ thống yêu cầu bản ghi xác nhận dự thi. | Cấp thành công tạo mã tra cứu; yêu cầu lặp bị từ chối; mã không tồn tại trả 404. |
+| QT07 | Mỗi email thuộc về một hồ sơ học viên. Hệ thống chuẩn hóa email bằng cách bỏ khoảng trắng đầu cuối và chuyển chữ hoa về chữ thường. | Tạo hồ sơ bằng email đã tồn tại trả 409. Tra cứu bằng email đã chuẩn hóa xác định một học viên cùng các lượt ghi danh của học viên đó. |
 
 QR mở URL tra cứu bằng mã riêng của chứng chỉ. Phản hồi công khai gồm họ tên người được cấp, tên lớp và ngày cấp. Dữ liệu đăng nhập, liên lạc và học phí chỉ phục vụ nghiệp vụ nội bộ.
 

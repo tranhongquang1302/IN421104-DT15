@@ -150,6 +150,10 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_students_Email");
+
                     b.ToTable("students", (string)null);
                 });
 

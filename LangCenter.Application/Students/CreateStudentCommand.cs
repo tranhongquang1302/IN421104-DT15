@@ -20,7 +20,9 @@ public class CreateStudentCommandHandler(IStudentRepository students)
             throw new BusinessRuleException(ex.Message);
         }
 
-        await students.AddAsync(student, ct);
+        if (!await students.TryAddAsync(student, ct))
+            throw new ConflictException("Email học viên đã được sử dụng.");
+
         return StudentDto.FromStudent(student);
     }
 }

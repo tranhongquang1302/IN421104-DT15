@@ -1,4 +1,5 @@
 using LangCenter.Application.Tuition;
+using LangCenter.Domain.Entities;
 using LangCenter.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ public class EnrollmentLookupQuery(LangCenterDbContext db) : IEnrollmentLookupQu
     public async Task<IReadOnlyList<EnrollmentLookupDto>> FindByStudentEmailAsync(
         string studentEmail, CancellationToken ct = default)
     {
-        var email = studentEmail.Trim().ToLowerInvariant();
+        var email = Student.NormalizeEmail(studentEmail);
         return await (from enrollment in db.Enrollments
                       join student in db.Students on enrollment.StudentId equals student.Id
                       join trainingClass in db.TrainingClasses on enrollment.TrainingClassId equals trainingClass.Id

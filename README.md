@@ -60,13 +60,19 @@ Docker Compose tự áp dụng migration cho môi trường Development. Khi ch�
 dotnet ef database update --project LangCenter.Infrastructure --startup-project LangCenter.API
 ```
 
+Khi nâng cấp một cơ sở dữ liệu có sẵn, migration `RequireUniqueStudentEmail` sẽ dừng nếu có hồ sơ trùng email. Kiểm tra bằng câu lệnh chỉ đọc dưới đây, đối chiếu hồ sơ với các lượt ghi danh và chỉ sửa dữ liệu sau khi xác nhận thông tin chính xác. Sau đó chạy lại migration.
+
+```sql
+SELECT "Email", COUNT(*) FROM students GROUP BY "Email" HAVING COUNT(*) > 1;
+```
+
 Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi động. Dùng biến môi trường `JwtSettings__SigningKey` cho API hoặc `LANGCENTER_JWT_SIGNING_KEY` cho Docker Compose để đặt khóa ổn định. Production yêu cầu khóa ngẫu nhiên ít nhất 32 byte mã hóa Base64.
 
 ### Tạo lớp, ghi danh và khai giảng
 
 1. Đăng nhập bằng tài khoản Admin hoặc Registrar và bật **Authorize**.
 2. Gọi `POST /api/classes` với `name`, `minimumEnrollment` và `tuitionFee`. Dùng ID từ kết quả để xem chi tiết tại `GET /api/classes/{id}`.
-3. Tạo học viên bằng `POST /api/students`. Gọi `POST /api/classes/{classId}/enrollments` với `studentId`. Kết quả ghi lại số tiền phải thu ở trường `tuitionDue`.
+3. Tạo học viên bằng `POST /api/students`. Mỗi email dùng cho một hồ sơ học viên. Email đã dùng trả `409 Conflict`, kể cả khi khác chữ hoa hoặc khoảng trắng đầu cuối. Gọi `POST /api/classes/{classId}/enrollments` với `studentId`. Kết quả ghi lại số tiền phải thu ở trường `tuitionDue`.
 4. Gọi `POST /api/classes/{id}/launch`. Lớp dưới ngưỡng trả `400`; lớp vừa đủ hoặc vượt ngưỡng chuyển sang `Started`. Ghi danh mới sau khi khai giảng cũng trả `400`.
 
 ### Thu học phí, xác nhận dự thi và xem công nợ

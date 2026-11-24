@@ -8,6 +8,8 @@ namespace LangCenter.Infrastructure.Persistence;
 public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
     : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
 {
+    internal const string StudentEmailIndexName = "IX_students_Email";
+
     public DbSet<Student> Students => Set<Student>();
     public DbSet<TrainingClass> TrainingClasses => Set<TrainingClass>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
@@ -25,6 +27,7 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
             entity.HasKey(student => student.Id);
             entity.Property(student => student.FullName).IsRequired().HasMaxLength(Student.MaxFullNameLength);
             entity.Property(student => student.Email).IsRequired().HasMaxLength(Student.MaxEmailLength);
+            entity.HasIndex(student => student.Email).IsUnique().HasDatabaseName(StudentEmailIndexName);
         });
         modelBuilder.Entity<TrainingClass>(entity =>
         {

@@ -30,6 +30,28 @@ public class StudentsApiTests(AuthenticatedApiFactory factory) : IClassFixture<A
     }
 
     [Fact]
+    public async Task Create_WithAnEmailAlreadyInUse_ReturnsConflictAndKeepsOriginalStudent()
+    {
+        using var client = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.RegistrarEmail);
+        const string email = "same.student@example.test";
+        using var original = await client.PostAsJsonAsync("/api/students",
+            new CreateStudentRequest("Nguyễn Mai Anh", $"  {email.ToUpperInvariant()}  "));
+        Assert.Equal(HttpStatusCode.Created, original.StatusCode);
+        var expected = await original.Content.ReadFromJsonAsync<StudentDto>();
+
+        using var duplicate = await client.PostAsJsonAsync("/api/students",
+            new CreateStudentRequest("Hồ Minh Tâm", email));
+
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        Assert.Equal("application/problem+json", duplicate.Content.Headers.ContentType?.MediaType);
+        var problem = await duplicate.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("Email học viên đã được sử dụng.", problem?.Detail);
+        var students = await client.GetFromJsonAsync<StudentDto[]>("/api/students");
+        Assert.NotNull(students);
+        Assert.Equal(expected, Assert.Single(students, student => student.Email == email));
+    }
+
+    [Fact]
     public async Task GetAll_AsAdmin_ReturnsSavedStudents()
     {
         using var client = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.AdminEmail);

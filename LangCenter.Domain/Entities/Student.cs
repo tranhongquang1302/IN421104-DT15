@@ -27,7 +27,9 @@ public class Student
         {
             Id = Guid.NewGuid(),
             FullName = fullName.Trim(),
-            Email = address.ToLowerInvariant()
+            Email = NormalizeEmail(address)
         };
     }
+
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }

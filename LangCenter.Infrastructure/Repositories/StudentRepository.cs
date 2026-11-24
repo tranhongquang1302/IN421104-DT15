@@ -2,15 +2,32 @@ using LangCenter.Domain.Entities;
 using LangCenter.Domain.Interfaces;
 using LangCenter.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace LangCenter.Infrastructure.Repositories;
 
 public class StudentRepository(LangCenterDbContext db) : IStudentRepository
 {
-    public async Task AddAsync(Student student, CancellationToken ct = default)
+    public async Task<bool> TryAddAsync(Student student, CancellationToken ct = default)
     {
-        db.Students.Add(student);
-        await db.SaveChangesAsync(ct);
+        if (await db.Students.AnyAsync(existing => existing.Email == student.Email, ct))
+            return false;
+
+        var entry = db.Students.Add(student);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: LangCenterDbContext.StudentEmailIndexName
+        })
+        {
+            entry.State = EntityState.Detached;
+            return false;
+        }
     }
 
     public Task<Student?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
