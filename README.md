@@ -1,5 +1,7 @@
 # LangCenter – Trung tâm ngoại ngữ
 
+[![CI](https://github.com/tranhongquang1302/IN421104-DT15/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tranhongquang1302/IN421104-DT15/actions/workflows/ci.yml)
+
 LangCenter là API quản lý lớp, ghi danh học viên và thu học phí cho trung tâm ngoại ngữ. Hệ thống kiểm tra sĩ số trước khi khai giảng, kiểm tra công nợ trước khi xác nhận dự thi cuối khóa và hỗ trợ tra cứu chứng chỉ qua mã QR.
 
 Dự án dùng C# .NET 10, ASP.NET Core Web API với Controllers, Swagger, EF Core và PostgreSQL.
@@ -8,12 +10,13 @@ Dự án dùng C# .NET 10, ASP.NET Core Web API với Controllers, Swagger, EF C
 
 - [Yêu cầu và quy tắc nghiệp vụ](docs/requirements.md)
 - [Kiến trúc, mô hình dữ liệu và hợp đồng API](docs/design.md)
+- [Danh mục minh chứng nộp bài](MinhChung/README.md)
 
 ## Chạy dự án
 
 ### Docker Compose
 
-Mở thư mục gốc của repo và chạy bằng Docker với Linux containers.
+Mở thư mục gốc của repo và chạy bằng Docker với Linux containers. Đặt mật khẩu theo mục [Đăng nhập trong Swagger](#đăng-nhập-trong-swagger) trước khi chạy lần đầu để API tạo tài khoản demo.
 
 ```bash
 docker compose up --build
@@ -22,7 +25,7 @@ docker compose up --build
 - Swagger [http://localhost:8080/swagger](http://localhost:8080/swagger)
 - Trạng thái API [http://localhost:8080/healthz](http://localhost:8080/healthz)
 
-API lắng nghe trên localhost. PostgreSQL chạy trong mạng Compose và dùng thông tin kết nối dành cho môi trường phát triển tại máy. Chạy `docker compose down` để dừng các service.
+API lắng nghe trên localhost theo mặc định. PostgreSQL chạy trong mạng Compose và dùng thông tin kết nối dành cho môi trường phát triển tại máy. Lệnh `docker compose up -d --build --wait` đợi API trả `200` tại `/healthz`. Chạy `docker compose down` để dừng các service.
 
 ### Chạy trực tiếp bằng .NET 10
 
@@ -30,7 +33,7 @@ API lắng nghe trên localhost. PostgreSQL chạy trong mạng Compose và dùn
 dotnet run --project LangCenter.API --launch-profile http
 ```
 
-Mở [Swagger ở cổng 5080](http://localhost:5080/swagger). Ở mốc khung dự án, Swagger và `/healthz` có thể chạy trước khi kết nối cơ sở dữ liệu. Cấu hình biến môi trường `ConnectionStrings__DefaultConnection` khi cần truy cập PostgreSQL từ API chạy trực tiếp.
+Mở [Swagger ở cổng 5080](http://localhost:5080/swagger). Đặt `ConnectionStrings__DefaultConnection` để API chạy trực tiếp kết nối PostgreSQL. Đặt `CertificateLinks__PublicBaseUrl` nếu địa chỉ truy cập từ ngoài khác địa chỉ mặc định `http://localhost:5080`.
 
 ### Đăng nhập trong Swagger
 
@@ -41,7 +44,7 @@ $env:LANGCENTER_DEMO_PASSWORD = Read-Host 'Mật khẩu demo' -MaskInput
 docker compose up -d --build --wait
 ```
 
-Mật khẩu có ít nhất 12 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt. Lần đầu API tạo ba tài khoản ở môi trường Development và lưu mật khẩu dạng băm trong PostgreSQL.
+Mật khẩu có ít nhất 12 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt. Lần đầu API tạo ba tài khoản ở môi trường Development và lưu mật khẩu dạng băm trong PostgreSQL. Dùng lại mật khẩu đã đặt nếu chạy với volume PostgreSQL cũ. Thay đổi biến môi trường chỉ ảnh hưởng tài khoản được tạo mới.
 
 | Vai trò | Email demo |
 | --- | --- |
@@ -74,21 +77,49 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 4. Đăng nhập bằng tài khoản Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/exam-admission`. Lớp phải ở trạng thái `Started` và dư nợ phải bằng 0. Khi học viên còn nợ, API trả `400` kèm `ProblemDetails`.
 5. Đăng nhập bằng tài khoản Cashier hoặc Admin. Gọi `GET /api/reports/classes/{id}/tuition` để xem số phải thu, đã thu và còn nợ của lớp cùng chi tiết từng lượt ghi danh.
 
+### Cấp chứng chỉ và tra cứu qua QR
+
+1. Dùng lớp và học viên đã tạo trong các bước trên hoặc chạy `pwsh -File scripts/Seed-Demo.ps1` sau khi Docker Compose sẵn sàng. Script tạo một lớp có hai lượt ghi danh. `PartialEnrollmentId` còn nợ 600 đồng và `EligibleEnrollmentId` đã đóng đủ, có xác nhận đủ điều kiện dự thi.
+2. Đăng nhập bằng Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/certificate` cho `EligibleEnrollmentId` với `{"completionConfirmed": true}`. API trả `201` cùng `id` chứng chỉ và `verifyUrl`. Lượt ghi danh thiếu xác nhận dự thi hoặc xác nhận hoàn thành trả `400`. Cấp lần hai trả `409`.
+3. Gọi `GET /api/certificates/{id}/qr` với **ID chứng chỉ** và tải ảnh PNG trong Swagger. Mở `verifyUrl` bằng cửa sổ ẩn danh để xem họ tên học viên, lớp và ngày cấp. Mã không hợp lệ trả `404`.
+
+URL mặc định của Compose dùng `localhost:8080`. Khi quét bằng điện thoại, dùng Wi-Fi chung với máy chạy Docker và đổi địa chỉ bên dưới thành IP LAN của máy. Dùng dữ liệu demo trong mạng riêng.
+
+```powershell
+$env:LANGCENTER_BIND_ADDRESS = '192.168.1.20'
+$env:LANGCENTER_CERTIFICATE_BASE_URL = "http://$($env:LANGCENTER_BIND_ADDRESS):8080"
+docker compose up -d --build --wait
+```
+
+Mở đường dẫn tra cứu trên điện thoại để kiểm tra kết nối trước khi quay. URL trong ảnh QR đã tải giữ địa chỉ từ lúc tạo ảnh. Tải ảnh mới sau khi đổi cấu hình.
+
 ## Kiểm thử và CI
 
 ```bash
 dotnet test LangCenter.sln --configuration Release
 ```
 
-[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lớp học, học viên, ghi danh, học phí, dự thi và báo cáo công nợ. Phần lớn ca tích hợp dùng SQLite trong bộ nhớ để chạy độc lập.
+[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lớp học, học viên, ghi danh, học phí, dự thi, báo cáo công nợ và chứng chỉ QR. Phần lớn ca tích hợp dùng SQLite trong bộ nhớ để chạy độc lập.
 
-[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`. Job `postgres-test` chạy các ca đồng thời trên PostgreSQL 16.
+[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`. Job `postgres-test` chạy các ca đồng thời về học phí và cấp chứng chỉ trên PostgreSQL 16.
 
 Để chạy thêm các ca PostgreSQL tại máy, đặt biến môi trường `LANGCENTER_TEST_POSTGRES` thành chuỗi kết nối của PostgreSQL kiểm thử. Tài khoản cần quyền tạo cơ sở dữ liệu. Test tự tạo một cơ sở dữ liệu có tên ngẫu nhiên, áp dụng migration rồi xóa cơ sở dữ liệu đó sau khi chạy.
 
 ```bash
-dotnet test LangCenter.sln --configuration Release --filter FullyQualifiedName~PostgresTuitionApiTests
+dotnet test LangCenter.sln --configuration Release --filter FullyQualifiedName~Postgres
 ```
+
+### Đo độ bao phủ
+
+```powershell
+dotnet test LangCenter.sln --configuration Release --settings coverlet.runsettings --collect "XPlat Code Coverage" --logger "trx;LogFileName=langcenter.trx" --results-directory TestResults
+$file = Get-ChildItem TestResults -Recurse -Filter coverage.cobertura.xml | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+[xml]$report = Get-Content -LiteralPath $file.FullName -Raw
+"Lines {0:P1} ({1}/{2})" -f [double]$report.coverage.'line-rate', $report.coverage.'lines-covered', $report.coverage.'lines-valid'
+"Branches {0:P1} ({1}/{2})" -f [double]$report.coverage.'branch-rate', $report.coverage.'branches-covered', $report.coverage.'branches-valid'
+```
+
+Báo cáo tính bốn tầng ứng dụng và bỏ qua mã migration sinh tự động. GitHub Actions hiển thị tỷ lệ ở **Summary** của lần chạy và lưu tệp TRX cùng Cobertura trong artifact `test-results`.
 
 ## Phân công
 

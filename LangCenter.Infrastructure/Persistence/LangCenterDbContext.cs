@@ -13,6 +13,7 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<ExamAdmission> ExamAdmissions => Set<ExamAdmission>();
+    public DbSet<Certificate> Certificates => Set<Certificate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,16 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
             entity.HasOne<Enrollment>().WithMany()
                 .HasForeignKey(admission => admission.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(admission => admission.EnrollmentId).IsUnique();
+        });
+        modelBuilder.Entity<Certificate>(entity =>
+        {
+            entity.ToTable("certificates");
+            entity.HasKey(certificate => certificate.Id);
+            entity.Property(certificate => certificate.LookupCode).IsRequired().HasMaxLength(Certificate.LookupCodeLength);
+            entity.HasOne<Enrollment>().WithMany()
+                .HasForeignKey(certificate => certificate.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(certificate => certificate.EnrollmentId).IsUnique();
+            entity.HasIndex(certificate => certificate.LookupCode).IsUnique();
         });
     }
 }

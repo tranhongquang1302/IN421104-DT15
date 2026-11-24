@@ -31,7 +31,7 @@ Luồng demo dùng Web API và Swagger. Đơn vị học phí là đồng Việt
 | --- | --- | --- |
 | Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp | Phạm Quốc Thanh |
 
-Báo cáo công nợ theo lớp là chức năng mở rộng được triển khai trong bản nháp mục 35–37 để nhóm review.
+Báo cáo công nợ theo lớp là chức năng mở rộng đã được triển khai ở mục 35–37.
 
 ## Quy tắc nghiệp vụ
 

@@ -8,9 +8,15 @@ services:
       Database__ApplyMigrations: "true"
       JwtSettings__SigningKey: "${LANGCENTER_JWT_SIGNING_KEY:-}"
       DevelopmentAccounts__Password: "${LANGCENTER_DEMO_PASSWORD:-}"
+      CertificateLinks__PublicBaseUrl: "${LANGCENTER_CERTIFICATE_BASE_URL:-http://localhost:8080}"
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=langcenter;Username=langcenter;Password=langcenter-local"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "${LANGCENTER_BIND_ADDRESS:-127.0.0.1}:8080:8080"
+    healthcheck:
+      test: ["CMD", "bash", "/app/healthcheck.sh"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
     depends_on:
       postgres:
         condition: service_healthy
