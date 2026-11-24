@@ -23,7 +23,7 @@ public class CertificatesController(ICertificateVerificationQuery verification, 
     public async Task<IActionResult> GetQr(Guid id, CancellationToken ct)
     {
         var certificate = await getCertificate.HandleAsync(new GetCertificateQuery(id), ct);
-        var url = links.GetVerificationUrl(certificate.LookupCode);
+        var url = links.GetPublicVerificationUrl(certificate.LookupCode);
         return File(qrCodes.RenderPng(url.AbsoluteUri), "image/png");
     }
 

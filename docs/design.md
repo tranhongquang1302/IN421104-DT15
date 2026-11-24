@@ -7,7 +7,7 @@
 | Domain | `LangCenter.Domain` | Thực thể, trạng thái, hành vi nghiệp vụ và hợp đồng repository sát Domain |
 | Application | `LangCenter.Application` | Command, query, handler, DTO và điều phối quy tắc cần đọc hoặc ghi dữ liệu |
 | Infrastructure | `LangCenter.Infrastructure` | EF Core, PostgreSQL, hiện thực repository và dịch vụ kỹ thuật |
-| Presentation | `LangCenter.API` | Controllers, yêu cầu HTTP, phân quyền, Swagger, cấu hình DI và phản hồi lỗi |
+| Presentation | `LangCenter.API` | Razor Pages cho nhân viên và tra cứu công khai, Controllers và Swagger cho API, phân quyền, cấu hình DI và phản hồi lỗi |
 
 `LangCenter.Tests` kiểm thử các tầng và gọi API qua host kiểm thử. Các mũi tên dưới đây biểu diễn chiều tham chiếu project.
 
@@ -18,6 +18,8 @@ flowchart TD
     Infrastructure --> Application
     Application --> Domain
 ```
+
+Razor Pages gọi trực tiếp các handler Application từ Presentation. Phiên web dùng cookie riêng, form POST được kiểm tra antiforgery. Các controller tiếp tục xác thực JWT. Trang tra cứu công khai và API xác minh dùng chung truy vấn chứng chỉ.
 
 ## Mô hình lớp Domain
 
@@ -147,7 +149,7 @@ Tạo học viên và tra cứu ghi danh dùng chung cách chuẩn hóa email. P
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
 | GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp |
 
-Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR dùng `CertificateLinks:PublicBaseUrl` từ cấu hình ứng dụng. Mã gồm 32 ký tự hex sinh ngẫu nhiên, độc lập với ID và dữ liệu học viên. QRCoder tạo ảnh PNG chạy được trong container Linux. Tra cứu theo mã trả họ tên học viên, tên lớp và ngày cấp. Mã sai định dạng hoặc không tồn tại trả `404`.
+Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR dùng `CertificateLinks:PublicBaseUrl` từ cấu hình ứng dụng. Mã gồm 32 ký tự hex sinh ngẫu nhiên, độc lập với ID và dữ liệu học viên. QRCoder tạo ảnh PNG chạy được trong container Linux. QR mở trang công khai `/certificates/verify/{lookupCode}`. API `/api/certificates/verify/{lookupCode}` trả JSON. Tra cứu theo mã trả họ tên học viên, tên lớp và ngày cấp. Mã sai định dạng hoặc không tồn tại trả `404`.
 
 Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0.
 

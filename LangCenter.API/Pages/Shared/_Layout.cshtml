@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · LangCenter</title>
+    <link rel="stylesheet" href="~/css/langcenter.css" asp-append-version="true" />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
+@if (ViewData["Workspace"] is true)
+{
+    <div class="workspace">
+        <aside class="sidebar">
+            <a class="brand" asp-page="/Workspace/Index"><span class="brand-mark" aria-hidden="true">LC</span><span>LangCenter<small>Trung tâm ngoại ngữ</small></span></a>
+            <nav class="navigation" aria-label="Điều hướng nghiệp vụ">
+                <a asp-page="/Workspace/Index">Tổng quan</a>
+                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar))
+                {
+                    <a asp-page="/Workspace/Students">Học viên</a>
+                    <a asp-page="/Workspace/Classes">Lớp học</a>
+                }
+                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier))
+                {
+                    <a asp-page="/Workspace/Tuition">Học phí và công nợ</a>
+                }
+                <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ</a>
+            </nav>
+            <form class="sign-out" method="post" asp-page="/Logout">
+                <button type="submit" class="button button-sidebar">Đăng xuất</button>
+            </form>
+        </aside>
+        <div class="workspace-content">
+            <header class="topbar">
+                <span>Không gian làm việc</span>
+                <div class="account"><span class="account-mark" aria-hidden="true">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant())</span><span>@User.Identity?.Name<small>@PortalDisplay.Role(User)</small></span></div>
+            </header>
+            <main class="page" id="main-content">
+                @if (TempData["StatusMessage"] is string message)
+                {
+                    <div class="notice success" role="status">@message</div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <header class="public-header">
+        <a class="brand" asp-page="/Index"><span class="brand-mark" aria-hidden="true">LC</span><span>LangCenter<small>Trung tâm ngoại ngữ</small></span></a>
+        <nav aria-label="Điều hướng công khai">
+            <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ</a>
+            <a asp-page="/Login">Đăng nhập</a>
+        </nav>
+    </header>
+    <main class="public-page" id="main-content">@RenderBody()</main>
+}
+</body>
+</html>

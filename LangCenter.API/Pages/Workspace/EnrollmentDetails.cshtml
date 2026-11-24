@@ -1,0 +1,82 @@
+@page "/workspace/enrollments/{id:guid}"
+@model LangCenter.API.Pages.Workspace.EnrollmentDetailsModel
+@{
+    ViewData["Title"] = Model.Enrollment.StudentName;
+}
+@if (Model.CanConfirmExam)
+{
+    <a class="back-link" asp-page="/Workspace/ClassDetails" asp-route-id="@Model.Enrollment.ClassId">← @Model.Enrollment.ClassName</a>
+}
+else
+{
+    <a class="back-link" asp-page="/Workspace/Tuition">← Học phí và công nợ</a>
+}
+<header class="page-heading"><div><h1>@Model.Enrollment.StudentName</h1><p>Lượt ghi danh · @Model.Enrollment.ClassName</p></div>
+    <span class="badge">@PortalDisplay.ClassStatus(Model.Enrollment.ClassStatus)</span>
+</header>
+<div asp-validation-summary="All" class="validation" role="alert"></div>
+<section class="panel">
+    <h2>Số dư học phí</h2>
+    <div class="metric-grid">
+        <div><span>Phải thu</span><strong>@PortalDisplay.Money(Model.Balance.TuitionDue)</strong></div>
+        <div><span>Đã thu</span><strong>@PortalDisplay.Money(Model.Balance.PaidAmount)</strong></div>
+        <div><span>Còn nợ</span><strong>@PortalDisplay.Money(Model.Balance.OutstandingAmount)</strong></div>
+    </div>
+</section>
+<div class="card-grid detail-actions">
+    @if (Model.CanCollect && Model.Balance.OutstandingAmount > 0)
+    {
+        <section class="panel">
+            <h2>Thu học phí</h2>
+            <form method="post" asp-page-handler="Payment" class="form-stack">
+                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                <div class="field">
+                    <label for="amount">Số tiền thu (đồng)</label>
+                    <input id="amount" name="amount" type="number" min="1" max="@Model.Balance.OutstandingAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="1" value="@Model.Amount?.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                </div>
+                <button type="submit" class="button primary">Ghi nhận thanh toán</button>
+            </form>
+        </section>
+    }
+    @if (Model.CanConfirmExam)
+    {
+        <section class="panel">
+            <h2>Dự thi cuối khóa</h2>
+            @if (Model.Enrollment.ExamAdmitted)
+            {
+                <span class="badge success">Đã xác nhận đủ điều kiện</span>
+            }
+            else
+            {
+                <p class="muted">Lớp phải khai giảng và học viên phải đóng đủ học phí.</p>
+                <form method="post" asp-page-handler="Exam"><button type="submit" class="button secondary">Xác nhận dự thi</button></form>
+            }
+        </section>
+    }
+    @if (Model.CanIssueCertificate)
+    {
+        <section class="panel">
+            <h2>Chứng chỉ</h2>
+            @if (Model.VerificationUrl is { } verificationUrl)
+            {
+                <span class="badge success">Đã cấp</span>
+                <img class="certificate-qr" src="@Url.Page("/Workspace/EnrollmentDetails", "Qr", new { id = Model.Enrollment.Id })" alt="Mã QR tra cứu chứng chỉ" width="196" height="196" />
+                <div class="actions">
+                    <a class="button secondary" asp-page-handler="Qr" asp-route-id="@Model.Enrollment.Id" download="langcenter-qr.png">Tải mã QR</a>
+                    <a href="@verificationUrl.AbsoluteUri">Mở trang tra cứu</a>
+                </div>
+            }
+            else if (Model.Enrollment.ExamAdmitted)
+            {
+                <form method="post" asp-page-handler="Certificate" class="form-stack">
+                    <label class="check"><input type="checkbox" name="completionConfirmed" value="true" required /> Học viên đã hoàn thành khóa học.</label>
+                    <button type="submit" class="button primary">Cấp chứng chỉ</button>
+                </form>
+            }
+            else
+            {
+                <p class="muted">Cần xác nhận dự thi trước khi cấp chứng chỉ.</p>
+            }
+        </section>
+    }
+</div>

@@ -23,7 +23,7 @@ Tài khoản đăng nhập là tài khoản nhân viên. Ba tài khoản demo đ
 - Khai giảng, ghi nhận các khoản thanh toán và xác nhận dự thi cuối khóa.
 - Cấp chứng chỉ và tra cứu chứng chỉ qua mã QR.
 
-Luồng demo dùng Web API và Swagger. Đơn vị học phí là đồng Việt Nam, lưu dưới dạng số nguyên đồng. Mức học phí được ghi nhận trên lượt ghi danh để xác định số phải thu của học viên tại thời điểm đó.
+Nhân viên thao tác qua giao diện Razor Pages. Swagger hỗ trợ thử và trình diễn các API. Đơn vị học phí là đồng Việt Nam, lưu dưới dạng số nguyên đồng. Mức học phí được ghi nhận trên lượt ghi danh để xác định số phải thu của học viên tại thời điểm đó.
 
 ## Chức năng mở rộng
 

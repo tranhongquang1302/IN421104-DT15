@@ -17,4 +17,6 @@ public class CertificateLinks
     }
 
     public Uri GetVerificationUrl(string lookupCode) => new(_baseUrl, $"api/certificates/verify/{lookupCode}");
+
+    public Uri GetPublicVerificationUrl(string lookupCode) => new(_baseUrl, $"certificates/verify/{lookupCode}");
 }

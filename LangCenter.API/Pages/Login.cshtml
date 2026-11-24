@@ -1,0 +1,32 @@
+@page "/login"
+@model LoginModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+<section class="login-grid">
+    <div class="login-intro">
+        <span class="brand-mark" aria-hidden="true">LC</span>
+        <h1>Quản lý trung tâm ngoại ngữ</h1>
+        <p>Lớp học, ghi danh, học phí và chứng chỉ trong cùng một hệ thống.</p>
+        <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="panel login-form">
+        <h2>Đăng nhập</h2>
+        <p class="muted">Dùng tài khoản nhân viên để vào không gian làm việc.</p>
+        <form method="post" class="form-stack">
+            <input asp-for="ReturnUrl" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+            <div class="field">
+                <label asp-for="Input.Email">Email</label>
+                <input asp-for="Input.Email" type="email" autocomplete="username" required />
+                <span asp-validation-for="Input.Email" class="validation"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Input.Password">Mật khẩu</label>
+                <input asp-for="Input.Password" type="password" autocomplete="current-password" required />
+                <span asp-validation-for="Input.Password" class="validation"></span>
+            </div>
+            <button type="submit" class="button primary">Đăng nhập</button>
+        </form>
+    </div>
+</section>

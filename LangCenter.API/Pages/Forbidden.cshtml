@@ -1,0 +1,10 @@
+@page "/forbidden"
+@{
+    ViewData["Title"] = "Thiếu quyền";
+    Response.StatusCode = 403;
+}
+<section class="panel verified">
+    <h1>Tài khoản chưa có quyền truy cập</h1>
+    <p class="muted">Hãy quay về không gian làm việc để chọn chức năng được cấp quyền.</p>
+    <a class="button primary" asp-page="/Index">Về trang chính</a>
+</section>

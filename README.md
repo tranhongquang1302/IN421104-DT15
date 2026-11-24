@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/tranhongquang1302/IN421104-DT15/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tranhongquang1302/IN421104-DT15/actions/workflows/ci.yml)
 
-LangCenter là API quản lý lớp, ghi danh học viên và thu học phí cho trung tâm ngoại ngữ. Hệ thống kiểm tra sĩ số trước khi khai giảng, kiểm tra công nợ trước khi xác nhận dự thi cuối khóa và hỗ trợ tra cứu chứng chỉ qua mã QR.
+LangCenter là ứng dụng web quản lý lớp, ghi danh học viên và thu học phí cho trung tâm ngoại ngữ. Hệ thống kiểm tra sĩ số trước khi khai giảng, kiểm tra công nợ trước khi xác nhận dự thi cuối khóa và hỗ trợ tra cứu chứng chỉ qua mã QR.
 
-Dự án dùng C# .NET 10, ASP.NET Core Web API với Controllers, Swagger, EF Core và PostgreSQL.
+Dự án dùng C# .NET 10, Razor Pages, ASP.NET Core Controllers, Swagger, EF Core và PostgreSQL.
 
 ## Tài liệu
 
@@ -16,12 +16,13 @@ Dự án dùng C# .NET 10, ASP.NET Core Web API với Controllers, Swagger, EF C
 
 ### Docker Compose
 
-Mở thư mục gốc của repo và chạy bằng Docker với Linux containers. Đặt mật khẩu theo mục [Đăng nhập trong Swagger](#đăng-nhập-trong-swagger) trước khi chạy lần đầu để API tạo tài khoản demo.
+Mở thư mục gốc của repo và chạy bằng Docker với Linux containers. Đặt mật khẩu theo mục [Sử dụng giao diện web](#sử-dụng-giao-diện-web) trước khi chạy lần đầu để API tạo tài khoản demo.
 
 ```bash
 docker compose up --build
 ```
 
+- Giao diện LangCenter [http://localhost:8080/](http://localhost:8080/)
 - Swagger [http://localhost:8080/swagger](http://localhost:8080/swagger)
 - Trạng thái API [http://localhost:8080/healthz](http://localhost:8080/healthz)
 
@@ -35,7 +36,7 @@ dotnet run --project LangCenter.API --launch-profile http
 
 Mở [Swagger ở cổng 5080](http://localhost:5080/swagger). Đặt `ConnectionStrings__DefaultConnection` để API chạy trực tiếp kết nối PostgreSQL. Đặt `CertificateLinks__PublicBaseUrl` nếu địa chỉ truy cập từ ngoài khác địa chỉ mặc định `http://localhost:5080`.
 
-### Đăng nhập trong Swagger
+### Sử dụng giao diện web
 
 Đặt mật khẩu demo trước khi khởi động Docker Compose. Trong PowerShell 7, có thể nhập mật khẩu mà không hiển thị bằng lệnh sau.
 
@@ -51,6 +52,10 @@ Mật khẩu có ít nhất 12 ký tự, gồm chữ hoa, chữ thường, chữ
 | Admin | `admin@langcenter.local` |
 | Registrar | `registrar@langcenter.local` |
 | Cashier | `cashier@langcenter.local` |
+
+Mở [LangCenter](http://localhost:8080/) và đăng nhập bằng email theo vai trò cùng mật khẩu demo. Giáo vụ vào **Lớp học** hoặc **Học viên** để tạo hồ sơ, ghi danh, khai giảng, xác nhận dự thi và cấp chứng chỉ. Thu ngân vào **Học phí và công nợ** để tra cứu theo email và làm việc theo từng lớp. Admin có cả hai nhóm chức năng. Trang [tra cứu chứng chỉ](http://localhost:8080/certificates/verify) dùng được khi chưa đăng nhập.
+
+### Đăng nhập trong Swagger
 
 Gọi `POST /api/auth/login` với email và mật khẩu vừa đặt, sao chép `accessToken` rồi dán vào nút **Authorize** trên Swagger. Gọi `GET /api/auth/me` để xem vai trò. Token mặc định có hiệu lực 30 phút. Admin và Registrar có thể tạo và xem học viên qua `/api/students`.
 
@@ -87,7 +92,7 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 
 1. Dùng lớp và học viên đã tạo trong các bước trên hoặc chạy `pwsh -File scripts/Seed-Demo.ps1` sau khi Docker Compose sẵn sàng. Script tạo một lớp có hai lượt ghi danh. `PartialEnrollmentId` còn nợ 600 đồng và `EligibleEnrollmentId` đã đóng đủ, có xác nhận đủ điều kiện dự thi.
 2. Đăng nhập bằng Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/certificate` cho `EligibleEnrollmentId` với `{"completionConfirmed": true}`. API trả `201` cùng `id` chứng chỉ và `verifyUrl`. Lượt ghi danh thiếu xác nhận dự thi hoặc xác nhận hoàn thành trả `400`. Cấp lần hai trả `409`.
-3. Gọi `GET /api/certificates/{id}/qr` với **ID chứng chỉ** và tải ảnh PNG trong Swagger. Mở `verifyUrl` bằng cửa sổ ẩn danh để xem họ tên học viên, lớp và ngày cấp. Mã không hợp lệ trả `404`.
+3. Gọi `GET /api/certificates/{id}/qr` với **ID chứng chỉ** và tải ảnh PNG trong Swagger. Quét ảnh QR để mở trang tra cứu chứng chỉ có họ tên học viên, lớp và ngày cấp. Trường `verifyUrl` trong phản hồi API vẫn mở kết quả JSON. Mã không hợp lệ trả `404`.
 
 URL mặc định của Compose dùng `localhost:8080`. Khi quét bằng điện thoại, dùng Wi-Fi chung với máy chạy Docker và đổi địa chỉ bên dưới thành IP LAN của máy. Dùng dữ liệu demo trong mạng riêng.
 

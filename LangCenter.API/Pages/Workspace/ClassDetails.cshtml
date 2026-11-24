@@ -1,0 +1,70 @@
+@page "/workspace/classes/{id:guid}"
+@model LangCenter.API.Pages.Workspace.ClassDetailsModel
+@{
+    ViewData["Title"] = Model.Class.Name;
+    var open = Model.Class.Status == "Open";
+}
+<a class="back-link" asp-page="/Workspace/Classes">← Danh sách lớp</a>
+<header class="page-heading">
+    <div><h1>@Model.Class.Name</h1><p>Sĩ số tối thiểu @Model.Class.MinimumEnrollment · Học phí @PortalDisplay.Money(Model.Class.TuitionFee)</p></div>
+    <span class="badge @(open ? "neutral" : "success")">@PortalDisplay.ClassStatus(Model.Class.Status)</span>
+</header>
+<div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+<div class="split">
+    <section class="panel" aria-labelledby="roster">
+        <div class="panel-heading"><h2 id="roster">Học viên trong lớp</h2><span class="badge">@Model.Roster.Count ghi danh</span></div>
+        @if (Model.Roster.Count == 0)
+        {
+            <p class="empty">Lớp chưa có lượt ghi danh.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Học viên</th><th scope="col">Thao tác</th></tr></thead>
+                <tbody>
+                    @foreach (var row in Model.Roster)
+                    {
+                        <tr><td><strong>@row.StudentName</strong><small>@row.StudentEmail</small></td>
+                            <td><a asp-page="/Workspace/EnrollmentDetails" asp-route-id="@row.Id">Xem lượt ghi danh</a></td></tr>
+                    }
+                </tbody>
+            </table></div>
+        }
+    </section>
+    <div class="stack">
+        @if (open)
+        {
+            <section class="panel">
+                <h2>Ghi danh học viên</h2>
+                @if (Model.AvailableStudents.Count == 0)
+                {
+                    <p class="muted">Chưa có học viên để thêm vào lớp.</p>
+                    <a asp-page="/Workspace/Students">Mở danh sách học viên →</a>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Enroll" class="form-stack">
+                        <div class="field">
+                            <label asp-for="StudentId">Học viên</label>
+                            <select asp-for="StudentId" required>
+                                <option value="">Chọn học viên</option>
+                                @foreach (var student in Model.AvailableStudents) { <option value="@student.Id">@student.FullName · @student.Email</option> }
+                            </select>
+                            <span asp-validation-for="StudentId" class="validation"></span>
+                        </div>
+                        <button type="submit" class="button primary">Ghi danh</button>
+                    </form>
+                }
+            </section>
+            <section class="panel">
+                <h2>Khai giảng</h2>
+                <p class="muted">Đã ghi danh @Model.Roster.Count / @Model.Class.MinimumEnrollment học viên theo sĩ số tối thiểu.</p>
+                <form method="post" asp-page-handler="Launch"><button type="submit" class="button secondary">Khai giảng lớp</button></form>
+            </section>
+        }
+        else
+        {
+            <section class="panel"><h2>Lớp đã khai giảng</h2><p class="muted">Chọn một lượt ghi danh để kiểm tra học phí, xác nhận dự thi hoặc cấp chứng chỉ.</p></section>
+        }
+    </div>
+</div>

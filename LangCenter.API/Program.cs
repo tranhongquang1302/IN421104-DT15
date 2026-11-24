@@ -22,6 +22,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+builder.Services.AddRazorPages(options => options.Conventions.AuthorizeFolder("/Workspace", WebSession.Policy));
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new() { Title = "LangCenter API", Version = "v1" });
@@ -74,6 +75,7 @@ builder.Services.AddScoped<IEnrollmentLookupQuery, EnrollmentLookupQuery>();
 builder.Services.AddScoped<IClassTuitionReportQuery, ClassTuitionReportQuery>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<EnrollStudentCommandHandler>();
+builder.Services.AddScoped<IEnrollmentWorkspaceQuery, EnrollmentWorkspaceQuery>();
 builder.Services.AddScoped<CreateClassCommandHandler>();
 builder.Services.AddScoped<GetClassesQueryHandler>();
 builder.Services.AddScoped<GetClassByIdQueryHandler>();
@@ -86,13 +88,16 @@ builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services.AddSingleton(TimeProvider.System);
 JwtAuthentication.Configure(builder.Services);
+WebSession.Configure(builder.Services, builder.Environment.IsDevelopment());
 builder.Services.AddAuthorization(Policies.Configure);
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
-        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    options.AddPolicy("login", context => HttpMethods.IsPost(context.Request.Method)
+        ? RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) })
+        : RateLimitPartition.GetNoLimiter("read-only"));
 });
 
 var app = builder.Build();
@@ -115,11 +120,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
+app.MapRazorPages();
 app.Run();
 
 public partial class Program { }

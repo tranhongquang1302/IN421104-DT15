@@ -1,0 +1,70 @@
+@page "/workspace/tuition"
+@model LangCenter.API.Pages.Workspace.TuitionModel
+@{
+    ViewData["Title"] = "Học phí và công nợ";
+}
+<header class="page-heading"><div><h1>Học phí và công nợ</h1><p>Thu học phí theo lượt ghi danh và xem báo cáo theo lớp.</p></div></header>
+<div class="card-grid">
+    <section class="panel">
+        <h2>Tìm lượt ghi danh</h2>
+        <form method="get" class="form-stack">
+            <div class="field"><label asp-for="Email">Email học viên</label><input asp-for="Email" type="email" autocomplete="off" required /><span asp-validation-for="Email" class="validation"></span></div>
+            <button type="submit" class="button primary">Tìm học viên</button>
+        </form>
+        @if (Model.Matches.Count > 0)
+        {
+            <ul class="result-list">
+            @foreach (var row in Model.Matches)
+            {
+                <li><a asp-page="/Workspace/EnrollmentDetails" asp-route-id="@row.EnrollmentId"><strong>@row.StudentName</strong><span>@row.ClassName →</span></a></li>
+            }
+            </ul>
+        }
+        else if (Model.Email is not null && ViewData.ModelState.IsValid)
+        {
+            <p class="empty">Không có lượt ghi danh nào cho email này.</p>
+        }
+    </section>
+    <section class="panel">
+        <h2>Báo cáo theo lớp</h2>
+        <form method="get" class="form-stack">
+            <div class="field">
+                <label asp-for="ClassId">Lớp học</label>
+                <select asp-for="ClassId" required>
+                    <option value="">Chọn lớp</option>
+                    @foreach (var row in Model.Classes) { <option value="@row.Id">@row.Name</option> }
+                </select>
+                <span asp-validation-for="ClassId" class="validation"></span>
+            </div>
+            <button type="submit" class="button secondary">Xem công nợ</button>
+        </form>
+    </section>
+</div>
+@if (Model.Report is { } report)
+{
+    <section class="panel report">
+        <div class="panel-heading"><h2>@report.ClassName</h2><span class="badge">@report.Enrollments.Count ghi danh</span></div>
+        <div class="metric-grid">
+            <div><span>Học phí phải thu</span><strong>@PortalDisplay.Money(report.TuitionDue)</strong></div>
+            <div><span>Đã thu</span><strong>@PortalDisplay.Money(report.PaidAmount)</strong></div>
+            <div><span>Còn nợ</span><strong>@PortalDisplay.Money(report.OutstandingAmount)</strong></div>
+        </div>
+        @if (report.Enrollments.Count == 0)
+        {
+            <p class="empty">Lớp chưa có lượt ghi danh để tính công nợ.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Học viên</th><th scope="col">Phải thu</th><th scope="col">Đã thu</th><th scope="col">Còn nợ</th></tr></thead>
+                <tbody>
+                @foreach (var row in report.Enrollments)
+                {
+                    <tr><td><a asp-page="/Workspace/EnrollmentDetails" asp-route-id="@row.EnrollmentId"><strong>@row.StudentName</strong></a></td>
+                        <td class="number">@PortalDisplay.Money(row.TuitionDue)</td><td class="number">@PortalDisplay.Money(row.PaidAmount)</td><td class="number">@PortalDisplay.Money(row.OutstandingAmount)</td></tr>
+                }
+                </tbody>
+            </table></div>
+        }
+    </section>
+}

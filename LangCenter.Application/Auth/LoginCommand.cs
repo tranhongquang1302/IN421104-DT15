@@ -20,7 +20,10 @@ public class LoginCommandHandler(IAccountRepository accounts, ITokenService toke
 {
     public async Task<LoginResult?> HandleAsync(LoginCommand command, CancellationToken ct = default)
     {
-        var account = await accounts.VerifyCredentialsAsync(command.Email.Trim(), command.Password, ct);
+        var account = await AuthenticateAsync(command, ct);
         return account is null ? null : tokens.IssueAccessToken(account);
     }
+
+    public Task<StaffAccount?> AuthenticateAsync(LoginCommand command, CancellationToken ct = default) =>
+        accounts.VerifyCredentialsAsync(command.Email.Trim(), command.Password, ct);
 }

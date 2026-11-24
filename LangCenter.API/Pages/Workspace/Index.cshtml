@@ -1,0 +1,20 @@
+@page "/workspace"
+@{
+    ViewData["Title"] = "Tổng quan";
+    var teaching = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar);
+    var tuition = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier);
+}
+<header class="page-heading">
+    <div><h1>Tổng quan</h1><p>Chọn công việc cần thực hiện với vai trò @PortalDisplay.Role(User).</p></div>
+</header>
+<div class="card-grid">
+    @if (teaching)
+    {
+        <a class="task-card" asp-page="/Workspace/Classes"><span class="task-icon" aria-hidden="true">L</span><h2>Lớp học</h2><p>Tạo lớp, ghi danh, khai giảng và xử lý kết quả từng lượt ghi danh.</p><span>Mở lớp học →</span></a>
+        <a class="task-card" asp-page="/Workspace/Students"><span class="task-icon" aria-hidden="true">H</span><h2>Học viên</h2><p>Thêm hồ sơ học viên và tra cứu thông tin liên hệ.</p><span>Mở học viên →</span></a>
+    }
+    @if (tuition)
+    {
+        <a class="task-card" asp-page="/Workspace/Tuition"><span class="task-icon" aria-hidden="true">đ</span><h2>Học phí và công nợ</h2><p>Tìm lượt ghi danh theo email, thu học phí và xem số liệu theo lớp.</p><span>Mở học phí →</span></a>
+    }
+</div>

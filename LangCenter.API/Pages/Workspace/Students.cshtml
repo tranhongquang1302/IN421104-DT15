@@ -1,0 +1,31 @@
+@page "/workspace/students"
+@model LangCenter.API.Pages.Workspace.StudentsModel
+@{
+    ViewData["Title"] = "Học viên";
+}
+<header class="page-heading"><div><h1>Học viên</h1><p>Thêm hồ sơ mới và xem danh sách học viên.</p></div></header>
+<div class="split">
+    <section class="panel" aria-labelledby="students-heading">
+        <div class="panel-heading"><h2 id="students-heading">Danh sách học viên</h2><span class="badge">@Model.Students.Count học viên</span></div>
+        @if (Model.Students.Count == 0)
+        {
+            <p class="empty">Chưa có hồ sơ. Thêm học viên bằng biểu mẫu bên cạnh.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Họ tên</th><th scope="col">Email</th></tr></thead>
+                <tbody>@foreach (var student in Model.Students) { <tr><td><strong>@student.FullName</strong></td><td>@student.Email</td></tr> }</tbody>
+            </table></div>
+        }
+    </section>
+    <section class="panel" aria-labelledby="new-student">
+        <h2 id="new-student">Thêm học viên</h2>
+        <form method="post" class="form-stack">
+            <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+            <div class="field"><label asp-for="Input.FullName">Họ và tên</label><input asp-for="Input.FullName" autocomplete="off" required /><span asp-validation-for="Input.FullName" class="validation"></span></div>
+            <div class="field"><label asp-for="Input.Email">Email học viên</label><input asp-for="Input.Email" type="email" autocomplete="off" required /><span asp-validation-for="Input.Email" class="validation"></span></div>
+            <button type="submit" class="button primary">Lưu học viên</button>
+        </form>
+    </section>
+</div>

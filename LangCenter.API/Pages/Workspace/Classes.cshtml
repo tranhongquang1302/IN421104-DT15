@@ -1,0 +1,41 @@
+@page "/workspace/classes"
+@model LangCenter.API.Pages.Workspace.ClassesModel
+@{
+    ViewData["Title"] = "Lớp học";
+}
+<header class="page-heading"><div><h1>Lớp học</h1><p>Chọn lớp để ghi danh, khai giảng và quản lý học viên theo lớp.</p></div></header>
+<div class="split">
+    <section class="panel" aria-labelledby="classes-heading">
+        <div class="panel-heading"><h2 id="classes-heading">Danh sách lớp</h2><span class="badge">@Model.Classes.Count lớp</span></div>
+        @if (Model.Classes.Count == 0)
+        {
+            <p class="empty">Chưa có lớp nào. Tạo lớp đầu tiên bằng biểu mẫu bên cạnh.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Lớp học</th><th scope="col">Học phí</th><th scope="col">Trạng thái</th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.Classes)
+                {
+                    <tr>
+                        <td><a asp-page="/Workspace/ClassDetails" asp-route-id="@row.Id"><strong>@row.Name</strong></a></td>
+                        <td class="number">@PortalDisplay.Money(row.TuitionFee)</td>
+                        <td><span class="badge @(row.Status == "Started" ? "success" : "neutral")">@PortalDisplay.ClassStatus(row.Status)</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+        }
+    </section>
+    <section class="panel" aria-labelledby="new-class">
+        <h2 id="new-class">Tạo lớp mới</h2>
+        <form method="post" class="form-stack">
+            <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+            <div class="field"><label asp-for="Input.Name">Tên lớp</label><input asp-for="Input.Name" required /><span asp-validation-for="Input.Name" class="validation"></span></div>
+            <div class="field"><label asp-for="Input.MinimumEnrollment">Sĩ số tối thiểu</label><input asp-for="Input.MinimumEnrollment" type="number" min="1" required /><span asp-validation-for="Input.MinimumEnrollment" class="validation"></span></div>
+            <div class="field"><label asp-for="Input.TuitionFee">Học phí (đồng)</label><input asp-for="Input.TuitionFee" type="number" min="0" step="1" required /><span asp-validation-for="Input.TuitionFee" class="validation"></span></div>
+            <button type="submit" class="button primary">Tạo lớp</button>
+        </form>
+    </section>
+</div>
