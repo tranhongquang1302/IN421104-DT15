@@ -17,6 +17,7 @@ RUN dotnet publish "LangCenter.API/LangCenter.API.csproj" --configuration Releas
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY ["LangCenter.API/healthcheck.sh", "./"]
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 USER app
