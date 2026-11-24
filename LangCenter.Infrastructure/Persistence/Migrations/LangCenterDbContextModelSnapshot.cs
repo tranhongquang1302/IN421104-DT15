@@ -54,6 +54,36 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(14)
+                        .HasColumnType("numeric(14,0)");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId", "RequestId")
+                        .IsUnique();
+
+                    b.ToTable("payments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_payments_Amount", "\"Amount\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("LangCenter.Domain.Entities.Student", b =>
                 {
                     b.Property<Guid>("Id")
@@ -318,6 +348,15 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.HasOne("LangCenter.Domain.Entities.TrainingClass", null)
                         .WithMany()
                         .HasForeignKey("TrainingClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LangCenter.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("LangCenter.Domain.Entities.Enrollment", null)
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

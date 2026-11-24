@@ -11,6 +11,7 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
     public DbSet<Student> Students => Set<Student>();
     public DbSet<TrainingClass> TrainingClasses => Set<TrainingClass>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Payment> Payments => Set<Payment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +47,15 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
             entity.HasOne<TrainingClass>().WithMany()
                 .HasForeignKey(enrollment => enrollment.TrainingClassId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(enrollment => new { enrollment.StudentId, enrollment.TrainingClassId }).IsUnique();
+        });
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("payments", table => table.HasCheckConstraint("CK_payments_Amount", "\"Amount\" > 0"));
+            entity.HasKey(payment => payment.Id);
+            entity.Property(payment => payment.Amount).HasPrecision(14, 0);
+            entity.HasOne<Enrollment>().WithMany()
+                .HasForeignKey(payment => payment.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(payment => new { payment.EnrollmentId, payment.RequestId }).IsUnique();
         });
     }
 }
