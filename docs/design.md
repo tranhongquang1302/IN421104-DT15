@@ -142,9 +142,11 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính 
 | POST | `/api/enrollments/{id}/certificate` | Admin, Registrar | `201` chứng chỉ, mã và URL tra cứu |
 | GET | `/api/certificates/{id}/qr` | Admin, Registrar | `200` ảnh QR |
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
-| GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp nếu nhóm chọn chức năng này |
+| GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp |
 
 Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
+
+Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0.
 
 ### Lỗi HTTP
 
