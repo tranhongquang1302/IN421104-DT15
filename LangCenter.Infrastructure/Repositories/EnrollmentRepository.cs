@@ -14,5 +14,22 @@ public class EnrollmentRepository(LangCenterDbContext db) : IEnrollmentRepositor
     public Task<int> CountByClassAsync(Guid classId, CancellationToken ct = default) =>
         db.Enrollments.CountAsync(enrollment => enrollment.TrainingClassId == classId, ct);
 
+    public Task<Enrollment?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+        db.Enrollments.AsNoTracking().FirstOrDefaultAsync(enrollment => enrollment.Id == id, ct);
+
+    public async Task<Enrollment?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default)
+    {
+        if (db.Database.CurrentTransaction is null)
+            throw new InvalidOperationException("A transaction is required to lock the enrollment.");
+
+        if (!db.Database.IsNpgsql())
+            return await db.Enrollments.FirstOrDefaultAsync(enrollment => enrollment.Id == id, ct);
+
+        var rows = await db.Enrollments
+            .FromSql($"""SELECT * FROM enrollments WHERE "Id" = {id} FOR UPDATE""")
+            .ToListAsync(ct);
+        return rows.SingleOrDefault();
+    }
+
     public void Add(Enrollment enrollment) => db.Enrollments.Add(enrollment);
 }

@@ -10,7 +10,7 @@ Trung tâm cần theo dõi lớp dự kiến, học viên ghi danh và tiền h�
 | --- | --- |
 | Quản trị viên (`Admin`) | Quản lý tài khoản và có toàn quyền thao tác nghiệp vụ |
 | Giáo vụ (`Registrar`) | Quản lý học viên, tạo và xem lớp, ghi danh, khai giảng, xác nhận dự thi và cấp chứng chỉ |
-| Thu ngân (`Cashier`) | Ghi nhận thanh toán, xem số dư học phí và xem báo cáo công nợ nếu chức năng này được nhóm chọn |
+| Thu ngân (`Cashier`) | Ghi nhận thanh toán, xem số dư học phí và xem báo cáo công nợ theo lớp |
 | Người tra cứu | Xem thông tin xác minh chứng chỉ bằng mã tra cứu công khai |
 
 Tài khoản đăng nhập là tài khoản nhân viên. Học viên được lưu thành hồ sơ phục vụ ghi danh. Trường phân quyền hiện thực theo ma trận API trong tài liệu thiết kế.
@@ -31,7 +31,7 @@ Luồng demo dùng Web API và Swagger. Đơn vị học phí là đồng Việt
 | --- | --- | --- |
 | Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp | Phạm Quốc Thanh |
 
-Đây là phương án dùng để lập kế hoạch cho mục 35–37. Nhóm xác nhận lựa chọn trước khi triển khai các mục này.
+Báo cáo công nợ theo lớp là chức năng mở rộng được triển khai trong bản nháp mục 35–37 để nhóm review.
 
 ## Quy tắc nghiệp vụ
 

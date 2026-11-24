@@ -22,3 +22,30 @@ jobs:
       - run: dotnet restore LangCenter.sln
       - run: dotnet build LangCenter.sln --configuration Release --no-restore
       - run: dotnet test LangCenter.sln --configuration Release --no-build
+
+  postgres-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: langcenter
+          POSTGRES_PASSWORD: langcenter-ci
+          POSTGRES_DB: postgres
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U langcenter -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      LANGCENTER_TEST_POSTGRES: Host=127.0.0.1;Port=5432;Database=postgres;Username=langcenter;Password=langcenter-ci
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test LangCenter.sln --configuration Release --filter FullyQualifiedName~PostgresTuitionApiTests

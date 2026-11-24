@@ -66,15 +66,29 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 3. Tạo học viên bằng `POST /api/students`. Gọi `POST /api/classes/{classId}/enrollments` với `studentId`. Kết quả ghi lại số tiền phải thu ở trường `tuitionDue`.
 4. Gọi `POST /api/classes/{id}/launch`. Lớp dưới ngưỡng trả `400`; lớp vừa đủ hoặc vượt ngưỡng chuyển sang `Started`. Ghi danh mới sau khi khai giảng cũng trả `400`.
 
+### Thu học phí, xác nhận dự thi và xem công nợ
+
+1. Đăng nhập bằng tài khoản Cashier hoặc Admin. Gọi `GET /api/enrollments?studentEmail={email}` bằng email học viên và lấy `enrollmentId` của lớp cần thu.
+2. Gọi `POST /api/enrollments/{id}/payments` với `amount` là số nguyên đồng dương. Có thể gửi `requestId` là một UUID riêng cho giao dịch. Nếu cần gửi lại giao dịch, dùng cùng mã và số tiền để nhận lại khoản thu cũ.
+3. Gọi `GET /api/enrollments/{id}/balance` để xem công nợ. Khoản thu vượt số còn nợ trả `400`.
+4. Đăng nhập bằng tài khoản Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/exam-admission`. Lớp phải ở trạng thái `Started` và dư nợ phải bằng 0. Khi học viên còn nợ, API trả `400` kèm `ProblemDetails`.
+5. Đăng nhập bằng tài khoản Cashier hoặc Admin. Gọi `GET /api/reports/classes/{id}/tuition` để xem số phải thu, đã thu và còn nợ của lớp cùng chi tiết từng lượt ghi danh.
+
 ## Kiểm thử và CI
 
 ```bash
 dotnet test LangCenter.sln --configuration Release
 ```
 
-[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lưu học viên, lớp học, ghi danh và khai giảng. Các ca đăng nhập và học viên dùng SQLite trong bộ nhớ để chạy độc lập.
+[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lớp học, học viên, ghi danh, học phí, dự thi và báo cáo công nợ. Phần lớn ca tích hợp dùng SQLite trong bộ nhớ để chạy độc lập.
 
-[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`.
+[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`. Job `postgres-test` chạy các ca đồng thời trên PostgreSQL 16.
+
+Để chạy thêm các ca PostgreSQL tại máy, đặt biến môi trường `LANGCENTER_TEST_POSTGRES` thành chuỗi kết nối của PostgreSQL kiểm thử. Tài khoản cần quyền tạo cơ sở dữ liệu. Test tự tạo một cơ sở dữ liệu có tên ngẫu nhiên, áp dụng migration rồi xóa cơ sở dữ liệu đó sau khi chạy.
+
+```bash
+dotnet test LangCenter.sln --configuration Release --filter FullyQualifiedName~PostgresTuitionApiTests
+```
 
 ## Phân công
 
