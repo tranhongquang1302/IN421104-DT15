@@ -80,9 +80,15 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 dotnet test LangCenter.sln --configuration Release
 ```
 
-[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lưu học viên, lớp học, ghi danh và khai giảng. Các ca đăng nhập và học viên dùng SQLite trong bộ nhớ để chạy độc lập.
+[Test tích hợp](LangCenter.Tests/Integration/) chạy trên host kiểm thử ASP.NET Core. Bộ test kiểm tra khởi động API, Swagger, lỗi `ProblemDetails`, đăng nhập, phân quyền, lớp học, học viên, ghi danh, học phí, dự thi và báo cáo công nợ. Phần lớn ca tích hợp dùng SQLite trong bộ nhớ để chạy độc lập.
 
-[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`.
+[Workflow CI](.github/workflows/ci.yml) chạy restore, build và test khi push lên `main` hoặc mở Pull Request vào `main`. Job `postgres-test` chạy các ca đồng thời trên PostgreSQL 16.
+
+Để chạy thêm các ca PostgreSQL tại máy, đặt biến môi trường `LANGCENTER_TEST_POSTGRES` thành chuỗi kết nối của PostgreSQL kiểm thử. Tài khoản cần quyền tạo cơ sở dữ liệu. Test tự tạo một cơ sở dữ liệu có tên ngẫu nhiên, áp dụng migration rồi xóa cơ sở dữ liệu đó sau khi chạy.
+
+```bash
+dotnet test LangCenter.sln --configuration Release --filter FullyQualifiedName~PostgresTuitionApiTests
+```
 
 ## Phân công
 
