@@ -29,6 +29,15 @@ public static class TuitionApiScenarios
         return enrollment;
     }
 
+    public static async Task LaunchAsync(HttpClient client, Guid classId)
+    {
+        using var response = await client.PostAsync($"/api/classes/{classId}/launch", content: null);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    public static Task<HttpResponseMessage> ConfirmExamAdmissionAsync(HttpClient client, Guid enrollmentId) =>
+        client.PostAsync($"/api/enrollments/{enrollmentId}/exam-admission", content: null);
+
     public static Task<HttpResponseMessage> PayAsync(HttpClient client, Guid enrollmentId, decimal amount,
         Guid? requestId = null) =>
         client.PostAsJsonAsync($"/api/enrollments/{enrollmentId}/payments", new RecordPaymentRequest(amount, requestId));
