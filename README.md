@@ -10,6 +10,7 @@ Dự án dùng C# .NET 10, ASP.NET Core Web API với Controllers, Swagger, EF C
 
 - [Yêu cầu và quy tắc nghiệp vụ](docs/requirements.md)
 - [Kiến trúc, mô hình dữ liệu và hợp đồng API](docs/design.md)
+- [Danh mục minh chứng nộp bài](MinhChung/README.md)
 
 ## Chạy dự án
 
