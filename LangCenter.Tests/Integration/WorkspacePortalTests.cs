@@ -32,6 +32,10 @@ public class WorkspacePortalTests(AuthenticatedApiFactory factory) : IClassFixtu
         Assert.Contains("href=\"/workspace/students\"", home);
         Assert.Contains("href=\"/workspace/classes\"", home);
         Assert.Contains("href=\"/workspace/tuition\"", home);
+        Assert.Contains("href=\"/workspace/students#new-student\"", home);
+        Assert.Contains("href=\"/workspace/classes#new-class\"", home);
+        Assert.Contains("Thu học phí", home);
+        Assert.Contains("href=\"/certificates/verify\"", home);
         await PortalForms.GetPageAsync(client, "/workspace/students");
         await PortalForms.GetPageAsync(client, "/workspace/classes");
         await PortalForms.GetPageAsync(client, "/workspace/tuition");

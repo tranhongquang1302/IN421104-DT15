@@ -1,20 +1,98 @@
 @page "/workspace"
+@model LangCenter.API.Pages.Workspace.DashboardModel
 @{
     ViewData["Title"] = "Tổng quan";
-    var teaching = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar);
-    var tuition = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier);
+    var canManageClasses = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar);
+    var canCollectTuition = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier);
 }
 <header class="page-heading">
-    <div><h1>Tổng quan</h1><p>Chọn công việc cần thực hiện với vai trò @PortalDisplay.Role(User).</p></div>
+    <div>
+        <h1>Tổng quan</h1>
+        <p>@(User.IsInRole(Roles.Admin) ? "Tiếp nhận học viên và xử lý học phí"
+            : canManageClasses ? "Tiếp nhận học viên và quản lý lớp học" : "Thu học phí và theo dõi công nợ")</p>
+    </div>
+    @if (canManageClasses)
+    {
+        <a class="button primary" asp-page="/Workspace/Classes" asp-fragment="new-class"><span aria-hidden="true">+</span> Tạo lớp</a>
+    }
 </header>
-<div class="card-grid">
-    @if (teaching)
+
+<section class="shortcuts" aria-label="Thao tác nhanh">
+    @if (canManageClasses)
     {
-        <a class="task-card" asp-page="/Workspace/Classes"><span class="task-icon" aria-hidden="true">L</span><h2>Lớp học</h2><p>Tạo lớp, ghi danh, khai giảng và xử lý kết quả từng lượt ghi danh.</p><span>Mở lớp học →</span></a>
-        <a class="task-card" asp-page="/Workspace/Students"><span class="task-icon" aria-hidden="true">H</span><h2>Học viên</h2><p>Thêm hồ sơ học viên và tra cứu thông tin liên hệ.</p><span>Mở học viên →</span></a>
+        <a class="shortcut" asp-page="/Workspace/Students" asp-fragment="new-student">
+            <span class="shortcut-icon"><span class="nav-icon icon-student" aria-hidden="true"></span></span>
+            <span><strong>Thêm học viên</strong><small>Tạo hồ sơ để ghi danh</small></span>
+            <span aria-hidden="true">↗</span>
+        </a>
     }
-    @if (tuition)
+    @if (canCollectTuition)
     {
-        <a class="task-card" asp-page="/Workspace/Tuition"><span class="task-icon" aria-hidden="true">đ</span><h2>Học phí và công nợ</h2><p>Tìm lượt ghi danh theo email, thu học phí và xem số liệu theo lớp.</p><span>Mở học phí →</span></a>
+        <a class="shortcut" asp-page="/Workspace/Tuition">
+            <span class="shortcut-icon"><span class="nav-icon icon-tuition" aria-hidden="true"></span></span>
+            <span><strong>Thu học phí</strong><small>Tìm theo email học viên</small></span>
+            <span aria-hidden="true">↗</span>
+        </a>
     }
+    <a class="shortcut" asp-page="/Certificates/Verify">
+        <span class="shortcut-icon"><span class="nav-icon icon-certificate" aria-hidden="true"></span></span>
+        <span><strong>Tra cứu chứng chỉ</strong><small>Xác minh bằng mã</small></span>
+        <span aria-hidden="true">↗</span>
+    </a>
+</section>
+
+<div class="dashboard-grid">
+    <section class="panel" aria-labelledby="dashboard-classes">
+        <div class="panel-heading">
+            <h2 id="dashboard-classes">Lớp học</h2>
+            @if (canManageClasses)
+            {
+                <a class="text-action" asp-page="/Workspace/Classes">Xem tất cả</a>
+            }
+            else
+            {
+                <a class="text-action" asp-page="/Workspace/Tuition">Xem báo cáo</a>
+            }
+        </div>
+        @if (Model.Classes.Count == 0)
+        {
+            <p class="empty">Chưa có lớp học.</p>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th scope="col">Tên lớp</th><th scope="col">Sĩ số / tối thiểu</th><th scope="col">Trạng thái</th></tr></thead>
+                    <tbody>
+                    @foreach (var row in Model.Classes)
+                    {
+                        var trainingClass = row.TrainingClass;
+                        <tr>
+                            <td>
+                                @if (canManageClasses)
+                                {
+                                    <a asp-page="/Workspace/ClassDetails" asp-route-id="@trainingClass.Id">@trainingClass.Name</a>
+                                }
+                                else
+                                {
+                                    <a asp-page="/Workspace/Tuition" asp-route-classId="@trainingClass.Id">@trainingClass.Name</a>
+                                }
+                            </td>
+                            <td class="dashboard-enrollment">@row.EnrollmentCount / @trainingClass.MinimumEnrollment</td>
+                            <td><span class="badge @(trainingClass.Status == nameof(ClassStatus.Started) ? "success" : "neutral")">@PortalDisplay.ClassStatus(trainingClass.Status)</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+    <section class="panel" aria-labelledby="dashboard-summary">
+        <div class="panel-heading"><h2 id="dashboard-summary">Thống kê lớp học</h2></div>
+        <dl class="dashboard-summary">
+            <div><dt>Tổng số lớp</dt><dd>@Model.ClassCount</dd></div>
+            <div><dt>Đang ghi danh</dt><dd>@Model.OpenCount</dd></div>
+            <div><dt>Đã khai giảng</dt><dd>@Model.StartedCount</dd></div>
+        </dl>
+    </section>
 </div>

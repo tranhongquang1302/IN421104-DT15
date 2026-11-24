@@ -4,24 +4,37 @@
     ViewData["Title"] = "Tra cứu chứng chỉ";
 }
 <section class="verification-page">
-    <header class="page-heading"><div><h1>Tra cứu chứng chỉ</h1><p>Quét mã QR trên chứng chỉ hoặc nhập mã tra cứu.</p></div></header>
+    <header class="verification-heading">
+        <div class="shortcut-icon"><span class="nav-icon icon-certificate" aria-hidden="true"></span></div>
+        <h1>Tra cứu chứng chỉ</h1>
+        <p>Nhập mã tra cứu in trên chứng chỉ hoặc quét mã QR.</p>
+    </header>
     <form method="get" asp-page="/Certificates/Verify" asp-route-lookupCode="" class="panel lookup-form" aria-label="Tìm chứng chỉ">
         <div class="field">
             <label for="code">Mã tra cứu</label>
-            <input id="code" name="code" value="@Model.Code" maxlength="32" autocomplete="off" required />
+            <input id="code" name="code" value="@Model.Code" maxlength="32" autocomplete="off" spellcheck="false" required />
         </div>
-        <button type="submit" class="button primary">Tra cứu</button>
+        <button type="submit" class="button primary">Tra cứu <span aria-hidden="true">→</span></button>
     </form>
     @if (Model.Certificate is { } certificate)
     {
-        <article class="panel verified">
-            <span class="badge success">Đã xác thực</span>
-            <h2>@certificate.StudentName</h2>
-            <dl class="details"><dt>Lớp học</dt><dd>@certificate.ClassName</dd><dt>Ngày cấp</dt><dd>@certificate.IssuedAt.ToString("dd/MM/yyyy")</dd></dl>
+        <article class="panel verified certificate-result">
+            <div class="certificate-status">
+                <span class="verified-mark" aria-hidden="true">✓</span>
+                <div><strong>Chứng chỉ hợp lệ</strong><small>Đã xác thực bởi LangCenter</small></div>
+            </div>
+            <div class="certificate-holder">
+                <span>Học viên</span>
+                <h2>@certificate.StudentName</h2>
+            </div>
+            <dl class="details">
+                <div><dt>Lớp học</dt><dd>@certificate.ClassName</dd></div>
+                <div><dt>Ngày cấp</dt><dd>@certificate.IssuedAt.ToString("dd/MM/yyyy")</dd></div>
+            </dl>
         </article>
     }
     else if (Model.Code is not null)
     {
-        <div class="notice warning" role="status">Không tìm thấy chứng chỉ với mã này.</div>
+        <div class="notice warning" role="status">Không tìm thấy chứng chỉ với mã này. Hãy kiểm tra lại mã tra cứu.</div>
     }
 </section>

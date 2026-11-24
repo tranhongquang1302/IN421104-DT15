@@ -1,8 +1,18 @@
+@{
+    var currentPage = ViewContext.RouteData.Values["page"] as string;
+    var ownsClasses = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar);
+    var ownsTuition = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier);
+    var classSection = currentPage is "/Workspace/Classes" or "/Workspace/ClassDetails" ||
+        (currentPage == "/Workspace/EnrollmentDetails" && ownsClasses && !ownsTuition);
+    var tuitionSection = currentPage == "/Workspace/Tuition" ||
+        (currentPage == "/Workspace/EnrollmentDetails" && ownsTuition && !ownsClasses);
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f1" />
     <title>@ViewData["Title"] · LangCenter</title>
     <link rel="stylesheet" href="~/css/langcenter.css" asp-append-version="true" />
 </head>
@@ -10,51 +20,66 @@
 <a class="skip-link" href="#main-content">Đến nội dung chính</a>
 @if (ViewData["Workspace"] is true)
 {
-    <div class="workspace">
-        <aside class="sidebar">
-            <a class="brand" asp-page="/Workspace/Index"><span class="brand-mark" aria-hidden="true">LC</span><span>LangCenter<small>Trung tâm ngoại ngữ</small></span></a>
+    <header class="workspace-header">
+        <div class="workspace-header-inner">
+            <a class="brand" asp-page="/Workspace/Index">
+                <span class="brand-mark" aria-hidden="true">LC</span>
+                <span>LangCenter</span>
+            </a>
             <nav class="navigation" aria-label="Điều hướng nghiệp vụ">
-                <a asp-page="/Workspace/Index">Tổng quan</a>
-                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Registrar))
+                <a asp-page="/Workspace/Index" aria-current="@(currentPage == "/Workspace/Index" ? "page" : null)">Tổng quan</a>
+                @if (ownsClasses)
                 {
-                    <a asp-page="/Workspace/Students">Học viên</a>
-                    <a asp-page="/Workspace/Classes">Lớp học</a>
+                    <a asp-page="/Workspace/Classes" class="@(classSection ? "section-active" : null)"
+                       aria-current="@(currentPage == "/Workspace/Classes" ? "page" : null)">Lớp học</a>
+                    <a asp-page="/Workspace/Students" aria-current="@(currentPage == "/Workspace/Students" ? "page" : null)">Học viên</a>
                 }
-                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Cashier))
+                @if (ownsTuition)
                 {
-                    <a asp-page="/Workspace/Tuition">Học phí và công nợ</a>
+                    <a asp-page="/Workspace/Tuition" class="@(tuitionSection ? "section-active" : null)"
+                       aria-current="@(currentPage == "/Workspace/Tuition" ? "page" : null)">Học phí</a>
                 }
-                <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ</a>
+                <a asp-page="/Certificates/Verify">Chứng chỉ</a>
             </nav>
-            <form class="sign-out" method="post" asp-page="/Logout">
-                <button type="submit" class="button button-sidebar">Đăng xuất</button>
-            </form>
-        </aside>
-        <div class="workspace-content">
-            <header class="topbar">
-                <span>Không gian làm việc</span>
-                <div class="account"><span class="account-mark" aria-hidden="true">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant())</span><span>@User.Identity?.Name<small>@PortalDisplay.Role(User)</small></span></div>
-            </header>
-            <main class="page" id="main-content">
-                @if (TempData["StatusMessage"] is string message)
-                {
-                    <div class="notice success" role="status">@message</div>
-                }
-                @RenderBody()
-            </main>
+            <div class="workspace-tools">
+                <div class="account">
+                    <span class="account-mark" aria-hidden="true">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant())</span>
+                    <strong>@PortalDisplay.Role(User)</strong>
+                </div>
+                <form class="sign-out" method="post" asp-page="/Logout">
+                    <button type="submit" class="button">Đăng xuất</button>
+                </form>
+            </div>
         </div>
-    </div>
+    </header>
+    <main class="page @(currentPage == "/Workspace/Index" ? "dashboard-page" : null)" id="main-content" tabindex="-1">
+        @if (currentPage != "/Workspace/Index")
+        {
+            <nav class="breadcrumb" aria-label="Vị trí">
+                <a asp-page="/Workspace/Index">Tổng quan</a>
+                <span aria-hidden="true">/</span><span aria-current="page">@ViewData["Title"]</span>
+            </nav>
+        }
+        @if (TempData["StatusMessage"] is string message)
+        {
+            <div class="notice success" role="status">@message</div>
+        }
+        @RenderBody()
+    </main>
 }
 else
 {
     <header class="public-header">
-        <a class="brand" asp-page="/Index"><span class="brand-mark" aria-hidden="true">LC</span><span>LangCenter<small>Trung tâm ngoại ngữ</small></span></a>
+        <a class="brand" asp-page="/Index">
+            <span class="brand-mark" aria-hidden="true">LC</span>
+            <span>LangCenter<small>Trung tâm ngoại ngữ</small></span>
+        </a>
         <nav aria-label="Điều hướng công khai">
-            <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ</a>
-            <a asp-page="/Login">Đăng nhập</a>
+            <a asp-page="/Certificates/Verify" aria-current="@(currentPage == "/Certificates/Verify" ? "page" : null)">Tra cứu chứng chỉ</a>
+            <a class="public-sign-in" asp-page="/Login" aria-current="@(currentPage == "/Login" ? "page" : null)">Đăng nhập</a>
         </nav>
     </header>
-    <main class="public-page" id="main-content">@RenderBody()</main>
+    <main class="public-page" id="main-content" tabindex="-1">@RenderBody()</main>
 }
 </body>
 </html>

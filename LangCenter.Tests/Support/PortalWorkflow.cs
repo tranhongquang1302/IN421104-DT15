@@ -14,6 +14,9 @@ public static class PortalWorkflow
         Assert.Contains("/forbidden", blockedTuition.Headers.Location?.OriginalString);
         var cashierHome = await PortalForms.GetPageAsync(cashier, "/workspace");
         Assert.DoesNotContain("href=\"/workspace/classes\"", cashierHome);
+        Assert.DoesNotContain("Thêm học viên", cashierHome);
+        Assert.DoesNotContain("Tạo lớp", cashierHome);
+        Assert.Contains("Thu học phí", cashierHome);
         Assert.Contains("Thu ngân", cashierHome);
 
         const string studentName = "Portal Student";
@@ -36,6 +39,11 @@ public static class PortalWorkflow
         Assert.Equal(HttpStatusCode.Redirect, createdClass.StatusCode);
         var classPath = createdClass.Headers.Location!.OriginalString;
         var classId = classPath.Split('/').Last();
+        var dashboard = await PortalForms.GetPageAsync(registrar, "/workspace");
+        Assert.Contains("Thêm học viên", dashboard);
+        Assert.DoesNotContain("Thu học phí", dashboard);
+        Assert.Contains("class=\"dashboard-enrollment\">0 / 1<", dashboard);
+
         var classPage = await PortalForms.GetPageAsync(registrar, classPath);
         using var earlyLaunch = await PortalForms.PostAsync(registrar, $"{classPath}?handler=Launch", classPage);
         Assert.Contains("Lớp chưa đủ sĩ số", await PortalForms.ReadHtmlAsync(earlyLaunch));
@@ -49,6 +57,10 @@ public static class PortalWorkflow
         var enrollmentPath = MatchValue(roster, "href=\"(/workspace/enrollments/[0-9a-f-]{36})\"");
         using var launched = await PortalForms.PostAsync(registrar, $"{classPath}?handler=Launch", roster);
         Assert.Equal(HttpStatusCode.Redirect, launched.StatusCode);
+        dashboard = await PortalForms.GetPageAsync(registrar, "/workspace");
+        Assert.Contains("Portal English A1", dashboard);
+        Assert.Contains(classPath, dashboard);
+        Assert.Contains("class=\"dashboard-enrollment\">1 / 1<", dashboard);
 
         var registrarEnrollment = await PortalForms.GetPageAsync(registrar, enrollmentPath);
         using var unpaidExam = await PortalForms.PostAsync(registrar, $"{enrollmentPath}?handler=Exam", registrarEnrollment);

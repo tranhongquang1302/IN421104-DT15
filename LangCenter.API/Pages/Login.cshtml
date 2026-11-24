@@ -5,14 +5,17 @@
 }
 <section class="login-grid">
     <div class="login-intro">
-        <span class="brand-mark" aria-hidden="true">LC</span>
-        <h1>Quản lý trung tâm ngoại ngữ</h1>
-        <p>Lớp học, ghi danh, học phí và chứng chỉ trong cùng một hệ thống.</p>
-        <a asp-page="/Certificates/Verify">Tra cứu chứng chỉ <span aria-hidden="true">→</span></a>
+        <img class="login-photo" src="~/images/language-classroom.jpg" alt="" asp-append-version="true" fetchpriority="high" />
+        <div class="login-intro-copy">
+            <h1>Quản lý trung tâm ngoại ngữ</h1>
+            <p>Từ ghi danh, học phí đến cấp chứng chỉ.</p>
+        </div>
     </div>
-    <div class="panel login-form">
-        <h2>Đăng nhập</h2>
-        <p class="muted">Dùng tài khoản nhân viên để vào không gian làm việc.</p>
+    <div class="login-form">
+        <div class="form-heading">
+            <h2>Đăng nhập</h2>
+            <p class="muted">Dùng tài khoản nhân viên để tiếp tục.</p>
+        </div>
         <form method="post" class="form-stack">
             <input asp-for="ReturnUrl" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
@@ -26,7 +29,7 @@
                 <input asp-for="Input.Password" type="password" autocomplete="current-password" required />
                 <span asp-validation-for="Input.Password" class="validation"></span>
             </div>
-            <button type="submit" class="button primary">Đăng nhập</button>
+            <button type="submit" class="button primary">Đăng nhập <span aria-hidden="true">→</span></button>
         </form>
     </div>
 </section>
