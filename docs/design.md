@@ -59,6 +59,7 @@ classDiagram
         +Guid Id
         +Guid EnrollmentId
         +DateTime AdmittedAt
+        +Create(enrollment, classStatus, paidAmount, admittedAt) ExamAdmission
     }
     class Certificate {
         +Guid Id
@@ -79,7 +80,7 @@ classDiagram
     Enrollment "1" --> "0..1" Certificate
 ```
 
-`TrainingClass.Launch(enrollmentCount, startedAt)` kiểm tra trạng thái và ngưỡng sĩ số. Handler của Application lấy số ghi danh từ repository và điều phối việc lưu trạng thái. Tương tự, handler dự thi lấy tổng học phí đã thu trước khi áp dụng QT05.
+`TrainingClass.Launch(enrollmentCount, startedAt)` kiểm tra trạng thái và ngưỡng sĩ số. Handler của Application lấy số ghi danh từ repository và điều phối việc lưu trạng thái. Handler dự thi khóa lượt ghi danh trong transaction, đọc tổng học phí đã thu và trạng thái lớp, rồi dùng `ExamAdmission.Create(...)` để áp dụng QT05. Khóa duy nhất trên `EnrollmentId` bảo đảm mỗi lượt ghi danh có một xác nhận.
 
 ## Quy ước từ sáu solution tham khảo
 

@@ -12,6 +12,7 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
     public DbSet<TrainingClass> TrainingClasses => Set<TrainingClass>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<ExamAdmission> ExamAdmissions => Set<ExamAdmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +57,14 @@ public class LangCenterDbContext(DbContextOptions<LangCenterDbContext> options)
             entity.HasOne<Enrollment>().WithMany()
                 .HasForeignKey(payment => payment.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(payment => new { payment.EnrollmentId, payment.RequestId }).IsUnique();
+        });
+        modelBuilder.Entity<ExamAdmission>(entity =>
+        {
+            entity.ToTable("exam_admissions");
+            entity.HasKey(admission => admission.Id);
+            entity.HasOne<Enrollment>().WithMany()
+                .HasForeignKey(admission => admission.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(admission => admission.EnrollmentId).IsUnique();
         });
     }
 }

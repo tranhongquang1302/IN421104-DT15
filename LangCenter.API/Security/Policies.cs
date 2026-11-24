@@ -9,6 +9,7 @@ public static class Policies
     public const string ManageClasses = "ManageClasses";
     public const string ManageTuition = "ManageTuition";
     public const string ReadTuitionBalance = "ReadTuitionBalance";
+    public const string ConfirmExamAdmission = "ConfirmExamAdmission";
 
     public static void Configure(AuthorizationOptions options)
     {
@@ -16,5 +17,6 @@ public static class Policies
         options.AddPolicy(ManageClasses, policy => policy.RequireRole(Roles.Admin, Roles.Registrar));
         options.AddPolicy(ManageTuition, policy => policy.RequireRole(Roles.Admin, Roles.Cashier));
         options.AddPolicy(ReadTuitionBalance, policy => policy.RequireRole(Roles.Admin, Roles.Registrar, Roles.Cashier));
+        options.AddPolicy(ConfirmExamAdmission, policy => policy.RequireRole(Roles.Admin, Roles.Registrar));
     }
 }

@@ -54,6 +54,26 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.ExamAdmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AdmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId")
+                        .IsUnique();
+
+                    b.ToTable("exam_admissions", (string)null);
+                });
+
             modelBuilder.Entity("LangCenter.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -348,6 +368,15 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.HasOne("LangCenter.Domain.Entities.TrainingClass", null)
                         .WithMany()
                         .HasForeignKey("TrainingClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LangCenter.Domain.Entities.ExamAdmission", b =>
+                {
+                    b.HasOne("LangCenter.Domain.Entities.Enrollment", null)
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
