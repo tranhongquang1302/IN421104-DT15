@@ -66,6 +66,7 @@ classDiagram
         +Guid EnrollmentId
         +string LookupCode
         +DateTime IssuedAt
+        +Create(enrollment, completionConfirmed, examAdmissionExists, lookupCode, issuedAt) Certificate
     }
     class ClassStatus {
         <<enumeration>>
@@ -120,9 +121,9 @@ erDiagram
 
 Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính xác đến micro giây cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
 
-Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán khóa bản ghi lượt ghi danh trong PostgreSQL trước khi tính công nợ và lưu khoản thu. Xác nhận dự thi dùng cùng cơ chế khóa theo lượt ghi danh.
+Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán khóa bản ghi lượt ghi danh trong PostgreSQL trước khi tính công nợ và lưu khoản thu. Xác nhận dự thi và cấp chứng chỉ dùng cùng cơ chế khóa theo lượt ghi danh. Chứng chỉ yêu cầu xác nhận hoàn thành khóa và bản ghi đủ điều kiện dự thi. Hai chỉ mục duy nhất trên `EnrollmentId` và `LookupCode` bảo vệ QT06.
 
-## Hợp đồng API dự kiến
+## Hợp đồng API
 
 | Phương thức | Đường dẫn | Quyền | Thành công |
 | --- | --- | --- | --- |
@@ -144,7 +145,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính 
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
 | GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp |
 
-Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
+Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR dùng `CertificateLinks:PublicBaseUrl` từ cấu hình ứng dụng. Mã gồm 32 ký tự hex sinh ngẫu nhiên, độc lập với ID và dữ liệu học viên. QRCoder tạo ảnh PNG chạy được trong container Linux. Tra cứu theo mã trả họ tên học viên, tên lớp và ngày cấp. Mã sai định dạng hoặc không tồn tại trả `404`.
 
 Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0.
 
@@ -166,4 +167,4 @@ Phân tầng lỗi theo C4. Application báo lỗi nghiệp vụ theo loại. Pr
 
 - Kiểm thử đơn vị các biên về sĩ số, giá trị thanh toán và điều kiện dự thi.
 - Kiểm thử tích hợp đăng nhập, role, ghi danh, lỗi nghiệp vụ và tra cứu chứng chỉ. Các ca kiểm thử ràng buộc dữ liệu cần cơ sở dữ liệu quan hệ kiểm thử.
-- Docker Compose chạy API và PostgreSQL. GitHub Actions chạy restore, build và test cho các thay đổi vào `main`. Độ bao phủ được bổ sung khi các luồng nghiệp vụ có kiểm thử.
+- Docker Compose chạy API và PostgreSQL. GitHub Actions chạy restore, build và test cho các thay đổi vào `main`. Coverlet tạo báo cáo Cobertura và GitHub Actions lưu kèm kết quả test TRX.
