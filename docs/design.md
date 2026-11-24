@@ -51,8 +51,9 @@ classDiagram
         +Guid Id
         +Guid EnrollmentId
         +decimal Amount
+        +Guid? RequestId
         +DateTime PaidAt
-        +Create(enrollmentId, amount) Payment
+        +Create(enrollmentId, amount, requestId, paidAt) Payment
     }
     class ExamAdmission {
         +Guid Id
@@ -103,7 +104,7 @@ Bài C2 dùng Strategy cho nhiều định dạng báo cáo và Factory để ch
 | `students` | `Id`, `FullName`, `Email` | Khóa chính `Id` |
 | `training_classes` | `Id`, `Name`, `MinimumEnrollment`, `TuitionFee`, `Status`, `StartedAt` | Sĩ số tối thiểu dương, học phí không âm |
 | `enrollments` | `Id`, `StudentId`, `TrainingClassId`, `TuitionDue`, `EnrolledAt` | Khóa ngoại đến học viên và lớp, duy nhất theo cặp `StudentId` và `TrainingClassId` |
-| `payments` | `Id`, `EnrollmentId`, `Amount`, `PaidAt` | Khóa ngoại đến ghi danh, số tiền dương |
+| `payments` | `Id`, `EnrollmentId`, `Amount`, `RequestId`, `PaidAt` | Khóa ngoại đến ghi danh, số tiền dương, mã yêu cầu duy nhất trong mỗi lượt ghi danh nếu được cung cấp |
 | `exam_admissions` | `Id`, `EnrollmentId`, `AdmittedAt` | Tối đa một bản ghi cho mỗi lượt ghi danh |
 | `certificates` | `Id`, `EnrollmentId`, `LookupCode`, `IssuedAt` | Duy nhất theo `EnrollmentId` và theo `LookupCode` |
 
@@ -118,7 +119,7 @@ erDiagram
 
 Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính xác đến micro giây cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
 
-Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán và xác nhận dự thi cần phối hợp theo lượt ghi danh.
+Ứng dụng giữ việc kiểm tra và ghi trong cùng phạm vi giao dịch. Khi ghi danh hoặc khai giảng, Application dùng Unit of Work và Infrastructure khóa bản ghi của cùng lớp trong PostgreSQL. Cơ sở dữ liệu cũng áp dụng ràng buộc duy nhất trên cặp học viên và lớp. Ghi nhận thanh toán khóa bản ghi lượt ghi danh trong PostgreSQL trước khi tính công nợ và lưu khoản thu. Xác nhận dự thi dùng cùng cơ chế khóa theo lượt ghi danh.
 
 ## Hợp đồng API dự kiến
 
@@ -133,7 +134,8 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính 
 | GET | `/api/classes/{id}` | Admin, Registrar | `200` chi tiết lớp |
 | POST | `/api/classes/{classId}/enrollments` | Admin, Registrar | `201` lượt ghi danh mới |
 | POST | `/api/classes/{id}/launch` | Admin, Registrar | `200` lớp đã khai giảng |
-| POST | `/api/enrollments/{id}/payments` | Admin, Cashier | `201` khoản thanh toán mới |
+| GET | `/api/enrollments?studentEmail={email}` | Admin, Cashier | `200` các lượt ghi danh của học viên theo email |
+| POST | `/api/enrollments/{id}/payments` | Admin, Cashier | `201` khoản thanh toán được ghi nhận |
 | GET | `/api/enrollments/{id}/balance` | Admin, Registrar, Cashier | `200` với số phải thu, đã thu và còn nợ |
 | POST | `/api/enrollments/{id}/exam-admission` | Admin, Registrar | `201` xác nhận đủ điều kiện dự thi |
 | POST | `/api/enrollments/{id}/certificate` | Admin, Registrar | `201` chứng chỉ, mã và URL tra cứu |
@@ -141,7 +143,7 @@ Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính 
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
 | GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp nếu nhóm chọn chức năng này |
 
-Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
+Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR sử dụng địa chỉ API cấu hình cho môi trường demo để điện thoại truy cập được.
 
 ### Lỗi HTTP
 

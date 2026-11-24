@@ -56,6 +56,8 @@ builder.Services.AddScoped<ITrainingClassRepository, TrainingClassRepository>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<RecordPaymentCommandHandler>();
+builder.Services.AddScoped<GetTuitionBalanceQueryHandler>();
+builder.Services.AddScoped<IEnrollmentLookupQuery, EnrollmentLookupQuery>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<EnrollStudentCommandHandler>();
 builder.Services.AddScoped<CreateClassCommandHandler>();
