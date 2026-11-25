@@ -125,6 +125,14 @@ public static class PortalWorkflow
         Assert.Contains("Portal English A1", report);
         Assert.Contains("Portal Student", report);
         Assert.Contains("1.000 đ", report);
+        var downloadPath = MatchValue(report, "href=\"(/workspace/tuition\\?[^\"\\s]*handler=Download[^\"\\s]*)\"");
+        Assert.Contains($"classId={classId}", downloadPath);
+        using var download = await cashier.GetAsync(downloadPath);
+        Assert.Equal(HttpStatusCode.OK, download.StatusCode);
+        Assert.Equal("text/csv", download.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("\"Portal Student\",1000,1000,0", await download.Content.ReadAsStringAsync());
+        using var blockedDownload = await registrar.GetAsync(downloadPath);
+        Assert.Contains("/forbidden", blockedDownload.Headers.Location?.OriginalString);
 
         registrarEnrollment = await PortalForms.GetPageAsync(registrar, enrollmentPath);
         using var exam = await PortalForms.PostAsync(registrar, $"{enrollmentPath}?handler=Exam", registrarEnrollment);

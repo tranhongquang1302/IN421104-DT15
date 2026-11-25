@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using LangCenter.API.Certificates;
 using LangCenter.API.Middleware;
+using LangCenter.API.Reports;
 using LangCenter.API.Security;
 using LangCenter.Application.Auth;
 using LangCenter.Application.Certificates;
@@ -73,6 +74,8 @@ builder.Services.AddScoped<RecordPaymentCommandHandler>();
 builder.Services.AddScoped<GetTuitionBalanceQueryHandler>();
 builder.Services.AddScoped<IEnrollmentLookupQuery, EnrollmentLookupQuery>();
 builder.Services.AddScoped<IClassTuitionReportQuery, ClassTuitionReportQuery>();
+builder.Services.AddSingleton<JsonClassTuitionReportStrategy>();
+builder.Services.AddSingleton<CsvClassTuitionReportStrategy>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<EnrollStudentCommandHandler>();
 builder.Services.AddScoped<IEnrollmentWorkspaceQuery, EnrollmentWorkspaceQuery>();

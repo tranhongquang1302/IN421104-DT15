@@ -88,6 +88,8 @@ Khi chưa đặt khóa JWT, Development tạo khóa mới mỗi lần khởi đ�
 4. Đăng nhập bằng tài khoản Registrar hoặc Admin. Gọi `POST /api/enrollments/{id}/exam-admission`. Lớp phải ở trạng thái `Started` và dư nợ phải bằng 0. Khi học viên còn nợ, API trả `400` kèm `ProblemDetails`.
 5. Đăng nhập bằng tài khoản Cashier hoặc Admin. Gọi `GET /api/reports/classes/{id}/tuition` để xem số phải thu, đã thu và còn nợ của lớp cùng chi tiết từng lượt ghi danh.
 
+Trên web, mở **Học phí**, chọn lớp trong **Báo cáo theo lớp**, bấm **Xem công nợ** rồi chọn **Tải CSV**. Có thể tải cùng báo cáo qua `GET /api/reports/classes/{id}/tuition.csv`. Tệp gồm các dòng chi tiết và tổng cộng, hỗ trợ mở bằng Excel với tiếng Việt.
+
 ### Tạo dữ liệu demo
 
 Sau khi Docker Compose sẵn sàng, chạy trong thư mục gốc của repo.

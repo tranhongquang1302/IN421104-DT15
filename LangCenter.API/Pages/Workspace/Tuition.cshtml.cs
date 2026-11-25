@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using LangCenter.API.Reports;
 using LangCenter.API.Security;
 using LangCenter.Application.Classes;
 using LangCenter.Application.Reports;
@@ -11,8 +12,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace LangCenter.API.Pages.Workspace;
 
 [Authorize(Policy = Policies.ManageTuition)]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class TuitionModel(IEnrollmentLookupQuery enrollmentLookup, GetClassesQueryHandler getClasses,
-    IClassTuitionReportQuery reports) : PageModel
+    IClassTuitionReportQuery reports, CsvClassTuitionReportStrategy csv) : PageModel
 {
     [BindProperty(SupportsGet = true)]
     [EmailAddress(ErrorMessage = "Email học viên không hợp lệ."), StringLength(Student.MaxEmailLength)]
@@ -37,5 +39,14 @@ public class TuitionModel(IEnrollmentLookupQuery enrollmentLookup, GetClassesQue
             if (Report is null)
                 ModelState.AddModelError(nameof(ClassId), "Không tìm thấy lớp học.");
         }
+    }
+
+    public async Task<IActionResult> OnGetDownloadAsync(CancellationToken ct)
+    {
+        if (!ModelState.IsValid || ClassId is not Guid classId)
+            return BadRequest();
+
+        var report = await reports.GetByClassIdAsync(classId, ct);
+        return report is null ? NotFound() : csv.Render(report);
     }
 }

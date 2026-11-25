@@ -29,7 +29,7 @@ Nhân viên thao tác qua giao diện Razor Pages. Swagger hỗ trợ thử và 
 
 | Phương án làm việc | Hành vi dự kiến | Phụ trách |
 | --- | --- | --- |
-| Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp | Phạm Quốc Thanh |
+| Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp, đồng thời tải báo cáo CSV | Phạm Quốc Thanh |
 
 Báo cáo công nợ theo lớp là chức năng mở rộng đã được triển khai ở mục 35–37.
 

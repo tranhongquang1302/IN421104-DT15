@@ -42,6 +42,14 @@ public class ClassTuitionReportApiTests(AuthenticatedApiFactory factory) : IClas
             report.Enrollments);
         Assert.Contains(new ClassTuitionReportRowDto(fullyPaid.Id, fullyPaidStudent.FullName, 1000m, 1000m), report.Enrollments);
         Assert.Contains(new ClassTuitionReportRowDto(unpaid.Id, unpaidStudent.FullName, 1000m, 0m), report.Enrollments);
+
+        using var download = await cashier.GetAsync($"/api/reports/classes/{classId}/tuition.csv");
+        Assert.Equal(HttpStatusCode.OK, download.StatusCode);
+        Assert.Equal("text/csv", download.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("attachment", download.Content.Headers.ContentDisposition?.DispositionType);
+        var csv = await download.Content.ReadAsStringAsync();
+        Assert.Contains($"\"{scenario.Student.FullName}\",1000,300,700", csv);
+        Assert.EndsWith("\"Tổng cộng\",3000,1300,1700\r\n", csv);
     }
 
     [Fact]
@@ -59,23 +67,27 @@ public class ClassTuitionReportApiTests(AuthenticatedApiFactory factory) : IClas
         Assert.Equal(0m, report.OutstandingAmount);
     }
 
-    [Fact]
-    public async Task GetClassTuition_WhenClassDoesNotExist_ReturnsNotFound()
+    [Theory]
+    [InlineData("")]
+    [InlineData(".csv")]
+    public async Task GetClassTuition_WhenClassDoesNotExist_ReturnsNotFound(string extension)
     {
         using var cashier = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.CashierEmail);
 
-        using var response = await cashier.GetAsync($"/api/reports/classes/{Guid.NewGuid()}/tuition");
+        using var response = await cashier.GetAsync($"/api/reports/classes/{Guid.NewGuid()}/tuition{extension}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
-    public async Task GetClassTuition_AsRegistrar_ReturnsForbidden()
+    [Theory]
+    [InlineData("")]
+    [InlineData(".csv")]
+    public async Task GetClassTuition_AsRegistrar_ReturnsForbidden(string extension)
     {
         using var registrar = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.RegistrarEmail);
         var trainingClass = await ClassApiScenarios.CreateClassAsync(registrar);
 
-        using var response = await registrar.GetAsync($"/api/reports/classes/{trainingClass.Id}/tuition");
+        using var response = await registrar.GetAsync($"/api/reports/classes/{trainingClass.Id}/tuition{extension}");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

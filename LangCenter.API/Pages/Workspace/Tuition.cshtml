@@ -43,7 +43,13 @@
 @if (Model.Report is { } report)
 {
     <section class="panel report">
-        <div class="panel-heading"><h2>@report.ClassName</h2><span class="badge">@report.Enrollments.Count ghi danh</span></div>
+        <div class="panel-heading">
+            <h2>@report.ClassName</h2>
+            <div class="actions">
+                <span class="badge">@report.Enrollments.Count ghi danh</span>
+                <a class="button secondary" asp-page-handler="Download" asp-route-classId="@report.TrainingClassId">Tải CSV</a>
+            </div>
+        </div>
         <div class="metric-grid">
             <div><span>Học phí phải thu</span><strong>@PortalDisplay.Money(report.TuitionDue)</strong></div>
             <div><span>Đã thu</span><strong>@PortalDisplay.Money(report.PaidAmount)</strong></div>

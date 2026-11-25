@@ -89,8 +89,8 @@ classDiagram
 
 | Bài mẫu | Quy ước dùng cho LangCenter |
 | --- | --- |
-| C1 | Entity có thuộc tính `private set`, factory method `Create(...)` và phương thức thay đổi trạng thái rõ nghĩa. |
-| C2 | Tiêm phụ thuộc qua constructor. Đặt tên test theo `Behavior_Condition_ExpectedResult`, ví dụ `Launch_BelowMinimumEnrollment_RejectsLaunch`. |
+| C1 | Entity có thuộc tính `private set`, phương thức tạo tĩnh `Create(...)` và phương thức thay đổi trạng thái rõ nghĩa. |
+| C2 | Tiêm phụ thuộc qua constructor. Viết unit test xUnit theo Arrange–Act–Assert và đặt tên dạng `Method_Scenario_ExpectedResult`, ví dụ `Launch_BelowMinimumEnrollment_LeavesClassOpen`. |
 | C3 | Tổ chức Application theo tính năng. Đặt tên dạng `CreateClassCommand`, `CreateClassCommandHandler` và `HandleAsync`. Controller nhận request, gọi handler và trả kết quả HTTP. |
 | C4 | Đặt ánh xạ EF Core trong Infrastructure, ràng buộc tính duy nhất ở cơ sở dữ liệu và chuyển lỗi tập trung thành `ProblemDetails`. |
 | C5 | Tổ chức đăng nhập JWT và policy phân quyền theo vai trò trong API. |
@@ -98,8 +98,16 @@ classDiagram
 
 Các tên lớp, phương thức, biến và ca kiểm thử viết bằng tiếng Anh. Các thao tác bất đồng bộ có hậu tố `Async` và chuyển tiếp `CancellationToken` tới tầng truy cập dữ liệu. Domain giữ quy tắc của từng thực thể. Application giữ quy tắc phối hợp giữa các thực thể. Repository và constructor injection giúp kiểm thử handler bằng phụ thuộc thay thế.
 
-Bài C2 dùng Strategy cho nhiều định dạng báo cáo và Factory để chọn kênh thông báo. Phạm vi hiện tại có một cách tính công nợ và một luồng cấp chứng chỉ. Nhóm bổ sung mẫu thiết kế khi có các biến thể cần biểu diễn.
+### Lựa chọn mẫu thiết kế
 
+| Mẫu áp dụng | Vị trí | Lý do chọn |
+| --- | --- | --- |
+| Repository | Các interface như `IEnrollmentRepository` và bản hiện thực trong Infrastructure | Handler dùng các thao tác nghiệp vụ qua interface. Infrastructure chịu trách nhiệm truy vấn và lưu trữ bằng EF Core. |
+| Unit of Work | `IUnitOfWork` và `EfUnitOfWork` | Giữ thao tác kiểm tra và ghi dữ liệu trong một giao dịch, chẳng hạn khóa lượt ghi danh, tính số dư và lưu khoản thanh toán. |
+| Phương thức tạo tĩnh | `TrainingClass.Create`, `Payment.Create`, `ExamAdmission.Create` | Kiểm tra điều kiện ở một vị trí khi tạo thực thể. Kiểu thực thể cần tạo được xác định ngay tại nơi gọi. |
+| Strategy | `IClassTuitionReportStrategy`, `JsonClassTuitionReportStrategy` và `CsvClassTuitionReportStrategy` ở Presentation | Định dạng cùng một báo cáo thành JSON hoặc CSV. Cách tính công nợ nằm trong truy vấn đọc và DTO dùng chung. |
+
+Strategy là mẫu được chọn từ bốn mẫu của C2. Luồng xuất báo cáo nhận một strategy rồi gọi `Render` với dữ liệu đã truy vấn. API chọn strategy theo endpoint. Razor Pages dùng lại strategy CSV cho nút **Tải CSV**. Hai lối vào dùng quyền xem công nợ của Admin và Cashier.
 
 ## Cơ sở dữ liệu PostgreSQL
 
@@ -147,11 +155,12 @@ Tạo học viên và tra cứu ghi danh dùng chung cách chuẩn hóa email. P
 | POST | `/api/enrollments/{id}/certificate` | Admin, Registrar | `201` chứng chỉ, mã và URL tra cứu |
 | GET | `/api/certificates/{id}/qr` | Admin, Registrar | `200` ảnh QR |
 | GET | `/api/certificates/verify/{lookupCode}` | Công khai | `200` kết quả tra cứu |
-| GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp |
+| GET | `/api/reports/classes/{id}/tuition` | Admin, Cashier | `200` báo cáo công nợ theo lớp dạng JSON |
+| GET | `/api/reports/classes/{id}/tuition.csv` | Admin, Cashier | `200` tệp CSV công nợ theo lớp |
 
 Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `email` và `password`. Tạo học viên nhận `fullName` và `email`. Request tạo lớp gồm `name`, `minimumEnrollment` và `tuitionFee`. Ghi danh nhận `studentId`. Ghi nhận thanh toán nhận `amount` và `requestId` có thể bỏ trống. Khi gửi lại cùng mã và số tiền, API trả về khoản thanh toán cũ. Cùng mã với số tiền khác trả `409`. Cấp chứng chỉ nhận `completionConfirmed`. URL trên QR dùng `CertificateLinks:PublicBaseUrl` từ cấu hình ứng dụng. Mã gồm 32 ký tự hex sinh ngẫu nhiên, độc lập với ID và dữ liệu học viên. QRCoder tạo ảnh PNG chạy được trong container Linux. QR mở trang công khai `/certificates/verify/{lookupCode}`. API `/api/certificates/verify/{lookupCode}` trả JSON. Tra cứu theo mã trả họ tên học viên, tên lớp và ngày cấp. Mã sai định dạng hoặc không tồn tại trả `404`.
 
-Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0.
+Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0. Tệp CSV dùng UTF-8 có BOM để Excel đọc được tiếng Việt, ghi số tiền theo đơn vị đồng và có dòng tổng cộng.
 
 ### Lỗi HTTP
 
@@ -169,6 +178,14 @@ Phân tầng lỗi theo C4. Application báo lỗi nghiệp vụ theo loại. Pr
 
 ## Kiểm thử và môi trường
 
-- Kiểm thử đơn vị các biên về sĩ số, giá trị thanh toán và điều kiện dự thi.
-- Kiểm thử tích hợp đăng nhập, role, ghi danh, lỗi nghiệp vụ và tra cứu chứng chỉ. Các ca kiểm thử ràng buộc dữ liệu cần cơ sở dữ liệu quan hệ kiểm thử.
+Các ca đơn vị dùng xUnit và gọi trực tiếp phương thức Domain theo Arrange–Act–Assert.
+
+| Quy tắc | Bộ kiểm thử | Trường hợp chính |
+| --- | --- | --- |
+| QT01 | `TrainingClassTests` | Thiếu, bằng và vượt ngưỡng sĩ số. Gọi khai giảng lần nữa giữ nguyên thời điểm khai giảng. |
+| QT04 | `PaymentTests` | Khoản thu hợp lệ, các biên số tiền, số âm, số 0, số lẻ, mã ghi danh hoặc mã yêu cầu rỗng. |
+| QT05 | `ExamAdmissionTests` | Lớp đã khai giảng với học phí đóng đủ hoặc bằng 0, lớp đang mở và số tiền đã đóng khác học phí phải thu. |
+
+- `ClassTuitionReportStrategyTests` kiểm tra hai định dạng trên cùng dữ liệu, dòng tổng và ký tự đặc biệt trong CSV.
+- Kiểm thử tích hợp xác nhận đăng nhập, phân quyền, ghi danh, tải báo cáo CSV, tra cứu chứng chỉ và các quy tắc phụ thuộc dữ liệu. Các ca PostgreSQL kiểm tra giao dịch đồng thời, như thu vượt công nợ hoặc xác nhận dự thi khi khoản thu cuối đang được ghi nhận.
 - Docker Compose chạy API và PostgreSQL. GitHub Actions chạy restore, build và test cho các thay đổi vào `main`. Coverlet tạo báo cáo Cobertura và GitHub Actions lưu kèm kết quả test TRX.
