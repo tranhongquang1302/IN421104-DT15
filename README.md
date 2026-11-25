@@ -98,7 +98,7 @@ Sau khi Docker Compose sẵn sàng, chạy trong thư mục gốc của repo.
 pwsh -File scripts/Seed-Demo.ps1
 ```
 
-Đợt mặc định `K01` tạo 10 lớp, 317 hồ sơ học viên, 338 lượt ghi danh, 240 khoản thanh toán và 4 chứng chỉ. Mỗi lớp có từ 31 đến 37 học viên đã ghi danh. Trong bộ seed, các lớp đủ sĩ số có số ghi danh bằng đúng ngưỡng khai giảng. Dữ liệu dùng tên giả lập và email `example.test`. Báo cáo công nợ có học viên chưa đóng, đóng một phần và đóng đủ. Một số học viên dùng cùng hồ sơ để ghi danh hai lớp.
+Trên cơ sở dữ liệu mới, đợt mặc định `K01` tạo 30 lớp, 1.007 hồ sơ học viên, 1.028 lượt ghi danh, 739 khoản thanh toán và 4 chứng chỉ. Mỗi lớp có từ 31 đến 37 học viên đã ghi danh. Các lớp đủ sĩ số có số ghi danh bằng đúng ngưỡng khai giảng. Với 10 dòng mỗi trang, danh sách lớp có 3 trang và mỗi bảng công nợ có 4 trang. Dữ liệu dùng tên giả lập và email `example.test`. Báo cáo công nợ có học viên chưa đóng, đóng một phần và đóng đủ. Một số học viên dùng cùng hồ sơ để ghi danh hai lớp.
 
 | Kịch bản | Kết quả dùng để demo |
 | --- | --- |
@@ -106,7 +106,13 @@ pwsh -File scripts/Seed-Demo.ps1
 | Tiếng Nhật N5 | Lớp `UnderfilledClassId` có 31 trong 32 học viên cần thiết. Thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm một học viên. |
 | Tiếng Anh B1 | Lớp đã khai giảng với 37 học viên. Mở `CertificateVerifyUrl` để xem một chứng chỉ đã cấp trên trang tra cứu công khai. |
 
-Mỗi mã đợt được dùng một lần. Để tạo một bộ dữ liệu độc lập sau khi đã dùng các kịch bản của đợt trước, chạy `pwsh -File scripts/Seed-Demo.ps1 -BatchCode K02`.
+Lệnh tạo cả bộ dữ liệu chạy một lần cho mỗi mã đợt. Để tạo một bộ dữ liệu độc lập, chạy `pwsh -File scripts/Seed-Demo.ps1 -BatchCode K02`.
+
+Nếu đã seed bộ 10 lớp ban đầu, chạy lệnh sau với mã đợt đang dùng để thêm 20 lớp và 690 học viên.
+
+```powershell
+pwsh -File scripts/Seed-Demo.ps1 -BatchCode K01 -AdditionalClassesOnly
+```
 
 ### Cấp chứng chỉ và tra cứu qua QR
 

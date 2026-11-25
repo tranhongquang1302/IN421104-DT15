@@ -3,7 +3,8 @@
 param(
     [uri]$BaseUrl = 'http://127.0.0.1:8080',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9-]{0,11}$')]
-    [string]$BatchCode = 'K01'
+    [string]$BatchCode = 'K01',
+    [switch]$AdditionalClassesOnly
 )
 
 Set-StrictMode -Version Latest
@@ -104,8 +105,47 @@ $classPlans = @(
     }
 )
 
+$additionalClassPlans = @(
+    @{ code = 'A1-AM'; name = 'Tiếng Anh A1 – Sáng 2-4-6'; minimum = 34; fee = 2400000; launch = $true }
+    @{ code = 'A2-AM'; name = 'Tiếng Anh A2 – Sáng 3-5-7'; minimum = 33; fee = 2800000; launch = $false }
+    @{ code = 'B1-PM'; name = 'Tiếng Anh B1 – Tối 2-4-6'; minimum = 35; fee = 3600000; launch = $true }
+    @{ code = 'B2-WE'; name = 'Tiếng Anh B2 – Chiều cuối tuần'; minimum = 36; fee = 4200000; launch = $false; shortage = 2 }
+    @{ code = 'C1-PM'; name = 'Tiếng Anh C1 – Tối 3-5-7'; minimum = 34; fee = 4800000; launch = $false }
+    @{ code = 'IELTS-45'; name = 'IELTS 4.5 – Chiều 2-4-6'; minimum = 36; fee = 4600000; launch = $true }
+    @{ code = 'IELTS-65'; name = 'IELTS 6.5 – Sáng cuối tuần'; minimum = 38; fee = 6200000; launch = $false; shortage = 3 }
+    @{ code = 'TOEIC-450'; name = 'TOEIC 450 – Tối 2-4-6'; minimum = 37; fee = 3100000; launch = $true }
+    @{ code = 'TOEIC-650'; name = 'TOEIC 650 – Tối 3-5-7'; minimum = 35; fee = 3900000; launch = $false }
+    @{ code = 'N5-WE'; name = 'Tiếng Nhật N5 – Chiều cuối tuần'; minimum = 34; fee = 3200000; launch = $false; shortage = 1 }
+    @{ code = 'N4-PM'; name = 'Tiếng Nhật N4 – Tối 2-4-6'; minimum = 35; fee = 3600000; launch = $true }
+    @{ code = 'N3-PM'; name = 'Tiếng Nhật N3 – Tối 3-5-7'; minimum = 36; fee = 4500000; launch = $false }
+    @{ code = 'HSK1-AM'; name = 'Tiếng Trung HSK 1 – Sáng 2-4-6'; minimum = 36; fee = 2700000; launch = $true }
+    @{ code = 'HSK2-PM'; name = 'Tiếng Trung HSK 2 – Tối 3-5-7'; minimum = 35; fee = 3100000; launch = $false; shortage = 2 }
+    @{ code = 'HSK3-PM'; name = 'Tiếng Trung HSK 3 – Tối 2-4-6'; minimum = 37; fee = 3700000; launch = $true }
+    @{ code = 'KO1-WE'; name = 'Tiếng Hàn sơ cấp 1 – Sáng cuối tuần'; minimum = 32; fee = 2900000; launch = $false; shortage = 1 }
+    @{ code = 'KO2-PM'; name = 'Tiếng Hàn sơ cấp 2 – Tối 3-5-7'; minimum = 34; fee = 3300000; launch = $true }
+    @{ code = 'TOPIK2-WE'; name = 'Tiếng Hàn TOPIK II – Chiều cuối tuần'; minimum = 36; fee = 4400000; launch = $false; shortage = 2 }
+    @{ code = 'FR-A1'; name = 'Tiếng Pháp A1 – Tối 3-5-7'; minimum = 33; fee = 3200000; launch = $true }
+    @{ code = 'DE-A1'; name = 'Tiếng Đức A1 – Sáng cuối tuần'; minimum = 35; fee = 3800000; launch = $false }
+)
+
+[int]$firstAdditionalStudentIndex = ($classPlans | ForEach-Object { $_.roster } | Measure-Object -Maximum).Maximum + 1
+$studentCount = $firstAdditionalStudentIndex
+foreach ($plan in $additionalClassPlans) {
+    $rosterSize = $plan.minimum - [int]$plan['shortage']
+    $plan.roster = @($studentCount..($studentCount + $rosterSize - 1))
+    $studentCount += $rosterSize
+}
+
+$firstStudentIndex = 0
+if ($AdditionalClassesOnly) {
+    $firstStudentIndex = $firstAdditionalStudentIndex
+    $classPlans = $additionalClassPlans
+}
+else {
+    $classPlans += $additionalClassPlans
+}
+
 # Keep the scenario students stable and fill the larger rosters with distinct synthetic names.
-$studentCount = ($classPlans | ForEach-Object { $_.roster } | Measure-Object -Maximum).Maximum + 1
 $familyNames = @('Nguyễn', 'Trần', 'Lê', 'Phạm', 'Huỳnh', 'Võ', 'Đặng', 'Đỗ', 'Bùi', 'Hồ', 'Phan', 'Ngô', 'Lý', 'Vũ', 'Dương')
 $givenNames = $sampleNames | ForEach-Object { ($_ -split ' ', 2)[1] } | Select-Object -Unique
 $nameCandidates = foreach ($familyName in $familyNames) {
@@ -117,18 +157,22 @@ $nameOrder = [Random]::new(421104)
 $additionalNames = $nameCandidates | Where-Object { $_ -notin $sampleNames } |
     Sort-Object { $nameOrder.Next() } | Select-Object -First ($studentCount - $sampleNames.Count)
 $studentNames = $sampleNames + $additionalNames
+if ($studentNames.Count -ne $studentCount) {
+    throw 'Not enough distinct synthetic names for the planned rosters.'
+}
 
 $emailPrefix = "langcenter-$($BatchCode.ToLowerInvariant())"
+$batchEmailPattern = '^' + [regex]::Escape($emailPrefix) + '-([0-9]{3,})@example\.test$'
 $existingStudents = Invoke-DemoRequest -Method Get -Path '/api/students' -Token $registrar
 foreach ($existingStudent in $existingStudents) {
-    if ($existingStudent.email -like "$emailPrefix-???@example.test") {
-        throw "Demo batch $BatchCode already has student records. Use another -BatchCode to create a fresh cohort."
+    if ($existingStudent.email -match $batchEmailPattern -and [int]$Matches[1] -gt $firstStudentIndex) {
+        throw "The selected rosters for batch $BatchCode already have student records. Use -AdditionalClassesOnly to extend an original batch or another -BatchCode for a fresh cohort."
     }
 }
 
 # The unique first student email prevents two attempts to create the same batch in parallel.
 $students = @(
-    for ($index = 0; $index -lt $studentNames.Count; $index++) {
+    for ($index = $firstStudentIndex; $index -lt $studentNames.Count; $index++) {
         $studentNumber = '{0:D3}' -f ($index + 1)
         Invoke-DemoRequest -Method Post -Path '/api/students' -Token $registrar -Body @{
             fullName = $studentNames[$index]
@@ -154,7 +198,7 @@ foreach ($plan in $classPlans) {
     $enrollments = @(
         foreach ($studentIndex in $plan.roster) {
             Invoke-DemoRequest -Method Post -Path "/api/classes/$classId/enrollments" -Token $registrar -Body @{
-                studentId = $students[$studentIndex].id
+                studentId = $students[$studentIndex - $firstStudentIndex].id
             }
         }
     )
@@ -201,6 +245,18 @@ foreach ($plan in $classPlans) {
             }
         }
     }
+}
+
+if ($AdditionalClassesOnly) {
+    [pscustomobject]@{
+        BatchCode = $BatchCode
+        ClassesCreated = $classes.Count
+        StudentsCreated = $students.Count
+        EnrollmentsCreated = $enrollmentCount
+        PaymentsRecorded = $paymentCount
+        CertificatesIssued = $certificates.Count
+    }
+    return
 }
 
 $partialEnrollment = $rosters['A1'][0]
