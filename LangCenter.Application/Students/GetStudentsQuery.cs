@@ -10,6 +10,13 @@ public class GetStudentsQueryHandler(IStudentRepository students)
         var results = await students.GetAllAsync(ct);
         return results.Select(StudentDto.FromStudent).ToArray();
     }
+
+    public async Task<PagedResult<StudentDto>> HandleAsync(PageRequest paging, CancellationToken ct = default)
+    {
+        var (items, totalCount) = await students.GetPageAsync(paging.Skip, paging.PageSize, ct);
+        return new PagedResult<StudentDto>(
+            items.Select(StudentDto.FromStudent).ToArray(), totalCount, paging.Page, paging.PageSize);
+    }
 }
 
 public record GetStudentByIdQuery(Guid Id);

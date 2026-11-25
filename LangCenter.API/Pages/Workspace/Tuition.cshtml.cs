@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using LangCenter.API.Reports;
 using LangCenter.API.Security;
 using LangCenter.Application.Classes;
+using LangCenter.Application.Common;
 using LangCenter.Application.Reports;
 using LangCenter.Application.Tuition;
 using LangCenter.Domain.Entities;
@@ -23,9 +24,15 @@ public class TuitionModel(IEnrollmentLookupQuery enrollmentLookup, GetClassesQue
     [BindProperty(SupportsGet = true)]
     public Guid? ClassId { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = PageRequest.DefaultPageSize;
+
     public IReadOnlyList<TrainingClassDto> Classes { get; private set; } = [];
     public IReadOnlyList<EnrollmentLookupDto> Matches { get; private set; } = [];
-    public ClassTuitionReportDto? Report { get; private set; }
+    public PagedClassTuitionReportDto? Report { get; private set; }
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -35,7 +42,7 @@ public class TuitionModel(IEnrollmentLookupQuery enrollmentLookup, GetClassesQue
 
         if (ClassId is Guid classId)
         {
-            Report = await reports.GetByClassIdAsync(classId, ct);
+            Report = await reports.GetPageAsync(classId, PageRequest.Of(PageNumber, PageSize), ct);
             if (Report is null)
                 ModelState.AddModelError(nameof(ClassId), "Không tìm thấy lớp học.");
         }

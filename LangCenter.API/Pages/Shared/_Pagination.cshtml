@@ -1,0 +1,28 @@
+@model PaginationLinks
+@if (Model.TotalPages > 1 || (Model.TotalPages > 0 && Model.Page > Model.TotalPages))
+{
+    <nav class="pagination" aria-label="Phân trang">
+        @if (Model.Page > Model.TotalPages)
+        {
+            <a class="button secondary" asp-page="@Model.PageName" asp-route-pageNumber="@Model.TotalPages"
+               asp-route-pageSize="@Model.PageSize" asp-route-classId="@Model.ClassId" asp-route-email="@Model.Email"
+               asp-fragment="@Model.Fragment">Về trang cuối</a>
+        }
+        else
+        {
+            @if (Model.Page > 1)
+            {
+                <a class="button secondary" asp-page="@Model.PageName" asp-route-pageNumber="@(Model.Page - 1)"
+                   asp-route-pageSize="@Model.PageSize" asp-route-classId="@Model.ClassId" asp-route-email="@Model.Email"
+                   asp-fragment="@Model.Fragment" rel="prev">Trang trước</a>
+            }
+            <span>Trang @Model.Page / @Model.TotalPages</span>
+            @if (Model.Page < Model.TotalPages)
+            {
+                <a class="button secondary" asp-page="@Model.PageName" asp-route-pageNumber="@(Model.Page + 1)"
+                   asp-route-pageSize="@Model.PageSize" asp-route-classId="@Model.ClassId" asp-route-email="@Model.Email"
+                   asp-fragment="@Model.Fragment" rel="next">Trang sau</a>
+            }
+        }
+    </nav>
+}

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using LangCenter.API.Security;
 using LangCenter.Application.Classes;
+using LangCenter.Application.Common;
 using LangCenter.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +14,16 @@ public class ClassesModel(GetClassesQueryHandler getClasses, CreateClassCommandH
     [BindProperty]
     public ClassInput Input { get; set; } = new();
 
-    public IReadOnlyList<TrainingClassDto> Classes { get; private set; } = [];
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
 
-    public async Task OnGetAsync(CancellationToken ct) => Classes = await getClasses.HandleAsync(ct);
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = PageRequest.DefaultPageSize;
+
+    public PagedResult<TrainingClassDto> Classes { get; private set; } = null!;
+
+    public async Task OnGetAsync(CancellationToken ct) =>
+        Classes = await getClasses.HandleAsync(PageRequest.Of(PageNumber, PageSize), ct);
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {

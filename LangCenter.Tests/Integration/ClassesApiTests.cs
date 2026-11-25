@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using LangCenter.API.Controllers;
 using LangCenter.Application.Classes;
+using LangCenter.Application.Common;
 using LangCenter.Tests.Support;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -42,6 +43,28 @@ public class ClassesApiTests(AuthenticatedApiFactory factory) : IClassFixture<Au
         Assert.Equal(new[] { first.Id, second.Id },
             classes.Where(trainingClass => trainingClass.Id == first.Id || trainingClass.Id == second.Id)
                 .Select(trainingClass => trainingClass.Id));
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaging_ReturnsOrderedPageAndTotal()
+    {
+        // Arrange
+        using var client = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.AdminEmail);
+        await ClassApiScenarios.CreateClassAsync(client, name: "A1");
+        await ClassApiScenarios.CreateClassAsync(client, name: "A1");
+        var classes = await client.GetFromJsonAsync<TrainingClassDto[]>("/api/classes");
+        Assert.NotNull(classes);
+
+        // Act
+        var page = await client.GetFromJsonAsync<PagedResult<TrainingClassDto>>("/api/classes?page=2&pageSize=1");
+
+        // Assert
+        Assert.NotNull(page);
+        Assert.Equal(classes[1], Assert.Single(page.Items));
+        Assert.Equal(classes.Length, page.TotalCount);
+        Assert.Equal(classes.Length, page.TotalPages);
+        Assert.Equal(2, page.Page);
+        Assert.Equal(1, page.PageSize);
     }
 
     [Fact]

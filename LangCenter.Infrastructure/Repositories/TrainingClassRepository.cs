@@ -35,8 +35,19 @@ public class TrainingClassRepository(LangCenterDbContext db) : ITrainingClassRep
     }
 
     public async Task<IReadOnlyList<TrainingClass>> GetAllAsync(CancellationToken ct = default) =>
-        await db.TrainingClasses.AsNoTracking()
+        await OrderClasses().ToListAsync(ct);
+
+    public async Task<(IReadOnlyList<TrainingClass> Items, int TotalCount)> GetPageAsync(int skip, int take,
+        CancellationToken ct = default)
+    {
+        var query = OrderClasses();
+        var totalCount = await query.CountAsync(ct);
+        var items = await query.Skip(skip).Take(take).ToListAsync(ct);
+        return (items, totalCount);
+    }
+
+    private IOrderedQueryable<TrainingClass> OrderClasses() =>
+        db.TrainingClasses.AsNoTracking()
             .OrderBy(trainingClass => trainingClass.Name)
-            .ThenBy(trainingClass => trainingClass.Id)
-            .ToListAsync(ct);
+            .ThenBy(trainingClass => trainingClass.Id);
 }

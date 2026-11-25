@@ -6,18 +6,21 @@
 <header class="page-heading"><div><h1>Học viên</h1><p>Thêm hồ sơ mới và xem danh sách học viên.</p></div></header>
 <div class="split">
     <section class="panel" aria-labelledby="students-heading">
-        <div class="panel-heading"><h2 id="students-heading">Danh sách học viên</h2><span class="badge">@Model.Students.Count học viên</span></div>
-        @if (Model.Students.Count == 0)
+        <div class="panel-heading"><h2 id="students-heading">Danh sách học viên</h2><span class="badge">@Model.Students.TotalCount học viên</span></div>
+        @if (Model.Students.Items.Count == 0)
         {
-            <p class="empty">Chưa có hồ sơ. Thêm học viên bằng biểu mẫu bên cạnh.</p>
+            <p class="empty">@(Model.Students.TotalCount == 0
+                ? "Chưa có hồ sơ. Thêm học viên bằng biểu mẫu bên cạnh." : "Trang này không có học viên.")</p>
         }
         else
         {
             <div class="table-scroll"><table>
                 <thead><tr><th scope="col">Họ tên</th><th scope="col">Email</th></tr></thead>
-                <tbody>@foreach (var student in Model.Students) { <tr><td><strong>@student.FullName</strong></td><td>@student.Email</td></tr> }</tbody>
+                <tbody>@foreach (var student in Model.Students.Items) { <tr><td><strong>@student.FullName</strong></td><td>@student.Email</td></tr> }</tbody>
             </table></div>
         }
+        @await Html.PartialAsync("_Pagination", new PaginationLinks("/Workspace/Students",
+            Model.Students.Page, Model.Students.PageSize, Model.Students.TotalPages))
     </section>
     <section class="panel" aria-labelledby="new-student">
         <h2 id="new-student">Thêm học viên</h2>

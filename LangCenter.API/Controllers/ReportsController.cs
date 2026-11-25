@@ -19,8 +19,17 @@ public class ReportsController(IClassTuitionReportQuery reports, JsonClassTuitio
     [HttpGet("classes/{id:guid}/tuition")]
     [ProducesResponseType<ClassTuitionReportDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClassTuitionReportDto>> GetClassTuition(Guid id, CancellationToken ct) =>
-        await RenderAsync(id, json, ct);
+    public async Task<IActionResult> GetClassTuition(Guid id, CancellationToken ct, [FromQuery] int? page = null,
+        [FromQuery] int? pageSize = null)
+    {
+        if (page is null && pageSize is null)
+            return await RenderAsync(id, json, ct);
+
+        var paging = PageRequest.Of(page ?? 1, pageSize ?? PageRequest.DefaultPageSize);
+        var report = await reports.GetPageAsync(id, paging, ct)
+            ?? throw new NotFoundException("Không tìm thấy lớp học.");
+        return Ok(report);
+    }
 
     [HttpGet("classes/{id:guid}/tuition.csv")]
     [Produces(CsvClassTuitionReportStrategy.MediaType)]

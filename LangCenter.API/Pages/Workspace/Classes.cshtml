@@ -6,17 +6,18 @@
 <header class="page-heading"><div><h1>Lớp học</h1><p>Chọn lớp để ghi danh, khai giảng và quản lý học viên theo lớp.</p></div></header>
 <div class="split">
     <section class="panel" aria-labelledby="classes-heading">
-        <div class="panel-heading"><h2 id="classes-heading">Danh sách lớp</h2><span class="badge">@Model.Classes.Count lớp</span></div>
-        @if (Model.Classes.Count == 0)
+        <div class="panel-heading"><h2 id="classes-heading">Danh sách lớp</h2><span class="badge">@Model.Classes.TotalCount lớp</span></div>
+        @if (Model.Classes.Items.Count == 0)
         {
-            <p class="empty">Chưa có lớp nào. Tạo lớp đầu tiên bằng biểu mẫu bên cạnh.</p>
+            <p class="empty">@(Model.Classes.TotalCount == 0
+                ? "Chưa có lớp nào. Tạo lớp đầu tiên bằng biểu mẫu bên cạnh." : "Trang này không có lớp học.")</p>
         }
         else
         {
             <div class="table-scroll"><table>
                 <thead><tr><th scope="col">Lớp học</th><th scope="col">Học phí</th><th scope="col">Trạng thái</th></tr></thead>
                 <tbody>
-                @foreach (var row in Model.Classes)
+                @foreach (var row in Model.Classes.Items)
                 {
                     <tr>
                         <td><a asp-page="/Workspace/ClassDetails" asp-route-id="@row.Id"><strong>@row.Name</strong></a></td>
@@ -27,6 +28,8 @@
                 </tbody>
             </table></div>
         }
+        @await Html.PartialAsync("_Pagination", new PaginationLinks("/Workspace/Classes",
+            Model.Classes.Page, Model.Classes.PageSize, Model.Classes.TotalPages))
     </section>
     <section class="panel" aria-labelledby="new-class">
         <h2 id="new-class">Tạo lớp mới</h2>

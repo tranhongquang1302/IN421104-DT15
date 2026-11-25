@@ -42,11 +42,11 @@
 </div>
 @if (Model.Report is { } report)
 {
-    <section class="panel report">
+    <section class="panel report" id="tuition-report">
         <div class="panel-heading">
             <h2>@report.ClassName</h2>
             <div class="actions">
-                <span class="badge">@report.Enrollments.Count ghi danh</span>
+                <span class="badge">@report.Enrollments.TotalCount ghi danh</span>
                 <a class="button secondary" asp-page-handler="Download" asp-route-classId="@report.TrainingClassId">Tải CSV</a>
             </div>
         </div>
@@ -55,16 +55,17 @@
             <div><span>Đã thu</span><strong>@PortalDisplay.Money(report.PaidAmount)</strong></div>
             <div><span>Còn nợ</span><strong>@PortalDisplay.Money(report.OutstandingAmount)</strong></div>
         </div>
-        @if (report.Enrollments.Count == 0)
+        @if (report.Enrollments.Items.Count == 0)
         {
-            <p class="empty">Lớp chưa có lượt ghi danh để tính công nợ.</p>
+            <p class="empty">@(report.Enrollments.TotalCount == 0
+                ? "Lớp chưa có lượt ghi danh để tính công nợ." : "Trang này không có lượt ghi danh.")</p>
         }
         else
         {
             <div class="table-scroll"><table>
                 <thead><tr><th scope="col">Học viên</th><th scope="col">Phải thu</th><th scope="col">Đã thu</th><th scope="col">Còn nợ</th></tr></thead>
                 <tbody>
-                @foreach (var row in report.Enrollments)
+                @foreach (var row in report.Enrollments.Items)
                 {
                     <tr><td><a asp-page="/Workspace/EnrollmentDetails" asp-route-id="@row.EnrollmentId"><strong>@row.StudentName</strong></a></td>
                         <td class="number">@PortalDisplay.Money(row.TuitionDue)</td><td class="number">@PortalDisplay.Money(row.PaidAmount)</td><td class="number">@PortalDisplay.Money(row.OutstandingAmount)</td></tr>
@@ -72,5 +73,8 @@
                 </tbody>
             </table></div>
         }
+        @await Html.PartialAsync("_Pagination", new PaginationLinks("/Workspace/Tuition",
+            report.Enrollments.Page, report.Enrollments.PageSize, report.Enrollments.TotalPages,
+            report.TrainingClassId, Model.Email, "tuition-report"))
     </section>
 }

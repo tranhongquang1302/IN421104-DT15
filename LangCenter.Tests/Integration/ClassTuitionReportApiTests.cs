@@ -43,6 +43,18 @@ public class ClassTuitionReportApiTests(AuthenticatedApiFactory factory) : IClas
         Assert.Contains(new ClassTuitionReportRowDto(fullyPaid.Id, fullyPaidStudent.FullName, 1000m, 1000m), report.Enrollments);
         Assert.Contains(new ClassTuitionReportRowDto(unpaid.Id, unpaidStudent.FullName, 1000m, 0m), report.Enrollments);
 
+        var pagedReport = await cashier.GetFromJsonAsync<PagedClassTuitionReportDto>(
+            $"/api/reports/classes/{classId}/tuition?page=2&pageSize=1");
+        Assert.NotNull(pagedReport);
+        Assert.Equal(report.Enrollments[1], Assert.Single(pagedReport.Enrollments.Items));
+        Assert.Equal(2, pagedReport.Enrollments.Page);
+        Assert.Equal(1, pagedReport.Enrollments.PageSize);
+        Assert.Equal(3, pagedReport.Enrollments.TotalCount);
+        Assert.Equal(3, pagedReport.Enrollments.TotalPages);
+        Assert.Equal(report.TuitionDue, pagedReport.TuitionDue);
+        Assert.Equal(report.PaidAmount, pagedReport.PaidAmount);
+        Assert.Equal(report.OutstandingAmount, pagedReport.OutstandingAmount);
+
         using var download = await cashier.GetAsync($"/api/reports/classes/{classId}/tuition.csv");
         Assert.Equal(HttpStatusCode.OK, download.StatusCode);
         Assert.Equal("text/csv", download.Content.Headers.ContentType?.MediaType);
@@ -50,6 +62,7 @@ public class ClassTuitionReportApiTests(AuthenticatedApiFactory factory) : IClas
         var csv = await download.Content.ReadAsStringAsync();
         Assert.Contains($"\"{scenario.Student.FullName}\",1000,300,700", csv);
         Assert.EndsWith("\"Tổng cộng\",3000,1300,1700\r\n", csv);
+        Assert.Equal(5, csv.Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Length);
     }
 
     [Fact]
@@ -65,6 +78,13 @@ public class ClassTuitionReportApiTests(AuthenticatedApiFactory factory) : IClas
         Assert.Equal(0m, report.TuitionDue);
         Assert.Equal(0m, report.PaidAmount);
         Assert.Equal(0m, report.OutstandingAmount);
+
+        var pagedReport = await admin.GetFromJsonAsync<PagedClassTuitionReportDto>(
+            $"/api/reports/classes/{trainingClass.Id}/tuition?page=1");
+        Assert.NotNull(pagedReport);
+        Assert.Empty(pagedReport.Enrollments.Items);
+        Assert.Equal(0, pagedReport.Enrollments.TotalPages);
+        Assert.Equal(0m, pagedReport.OutstandingAmount);
     }
 
     [Theory]

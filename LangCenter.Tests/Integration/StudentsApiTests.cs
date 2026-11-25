@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using LangCenter.API.Controllers;
+using LangCenter.Application.Common;
 using LangCenter.Application.Students;
 using LangCenter.Tests.Support;
 using Microsoft.AspNetCore.Mvc;
@@ -65,6 +66,31 @@ public class StudentsApiTests(AuthenticatedApiFactory factory) : IClassFixture<A
 
         Assert.NotNull(students);
         Assert.Contains(expected, students);
+    }
+
+    [Fact]
+    public async Task GetAll_WithOutOfRangePaging_NormalizesLimitsAndKeepsTotal()
+    {
+        // Arrange
+        using var client = await factory.CreateAuthenticatedClientAsync(AuthenticatedApiFactory.AdminEmail);
+        await ClassApiScenarios.CreateStudentAsync(client);
+        var students = await client.GetFromJsonAsync<StudentDto[]>("/api/students");
+        Assert.NotNull(students);
+
+        // Act
+        var first = await client.GetFromJsonAsync<PagedResult<StudentDto>>("/api/students?page=0&pageSize=0");
+        var beyond = await client.GetFromJsonAsync<PagedResult<StudentDto>>(
+            $"/api/students?page={int.MaxValue}&pageSize=500");
+
+        // Assert
+        Assert.NotNull(first);
+        Assert.Equal(1, first.Page);
+        Assert.Equal(1, first.PageSize);
+        Assert.Equal(students[0], Assert.Single(first.Items));
+        Assert.NotNull(beyond);
+        Assert.Empty(beyond.Items);
+        Assert.Equal(PageRequest.MaxPageSize, beyond.PageSize);
+        Assert.Equal(students.Length, beyond.TotalCount);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using LangCenter.API.Security;
+using LangCenter.Application.Common;
 using LangCenter.Application.Students;
 using LangCenter.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -29,8 +30,15 @@ public class StudentsController(
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<StudentDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<StudentDto>>> GetAll(CancellationToken ct) =>
-        Ok(await getStudents.HandleAsync(ct));
+    public async Task<IActionResult> GetAll(CancellationToken ct, [FromQuery] int? page = null,
+        [FromQuery] int? pageSize = null)
+    {
+        if (page is null && pageSize is null)
+            return Ok(await getStudents.HandleAsync(ct));
+
+        var paging = PageRequest.Of(page ?? 1, pageSize ?? PageRequest.DefaultPageSize);
+        return Ok(await getStudents.HandleAsync(paging, ct));
+    }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<StudentDto>(StatusCodes.Status200OK)]

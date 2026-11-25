@@ -92,7 +92,7 @@ classDiagram
 | C1 | Entity có thuộc tính `private set`, phương thức tạo tĩnh `Create(...)` và phương thức thay đổi trạng thái rõ nghĩa. |
 | C2 | Tiêm phụ thuộc qua constructor. Viết unit test xUnit theo Arrange–Act–Assert và đặt tên dạng `Method_Scenario_ExpectedResult`, ví dụ `Launch_BelowMinimumEnrollment_LeavesClassOpen`. |
 | C3 | Tổ chức Application theo tính năng. Đặt tên dạng `CreateClassCommand`, `CreateClassCommandHandler` và `HandleAsync`. Controller nhận request, gọi handler và trả kết quả HTTP. |
-| C4 | Đặt ánh xạ EF Core trong Infrastructure, ràng buộc tính duy nhất ở cơ sở dữ liệu và chuyển lỗi tập trung thành `ProblemDetails`. |
+| C4 | Đặt ánh xạ EF Core trong Infrastructure, ràng buộc tính duy nhất ở cơ sở dữ liệu, dùng `PageRequest` và `PagedResult<T>` để phân trang, chuyển lỗi tập trung thành `ProblemDetails`. |
 | C5 | Tổ chức đăng nhập JWT và policy phân quyền theo vai trò trong API. |
 | C6 | Dùng .NET 10, một project test xUnit, `WebApplicationFactory` cho API, Docker Compose và CI. |
 
@@ -162,6 +162,13 @@ Các request và response JSON dùng `camelCase`. Request đăng nhập gồm `e
 
 Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. Infrastructure dùng EF Core để cộng các khoản thu theo lượt ghi danh trong truy vấn SQL. Application trả tổng số phải thu, đã thu và còn nợ của lớp cùng các dòng chi tiết tính từ cùng tập kết quả. Lớp chưa có ghi danh trả các tổng bằng 0. Tệp CSV dùng UTF-8 có BOM để Excel đọc được tiếng Việt, ghi số tiền theo đơn vị đồng và có dòng tổng cộng.
 
+### Phân trang theo C4
+
+- API danh sách lớp, học viên và báo cáo công nợ nhận `page` và `pageSize`. Ví dụ `GET /api/students?page=2&pageSize=10`. Khi truyền ít nhất một tham số, các tham số còn lại mặc định là trang 1 và 10 bản ghi. `PageRequest` chuẩn hóa số trang về tối thiểu 1 và giới hạn kích thước từ 1 đến 100. Trang vượt phạm vi trả danh sách rỗng cùng tổng số bản ghi và số trang.
+- Với lớp và học viên, API phân trang trả `PagedResult<T>` gồm `items`, `totalCount`, `page`, `pageSize` và `totalPages`. Với công nợ, đối tượng báo cáo giữ thông tin lớp và ba số tổng, còn `enrollments` chứa `PagedResult<ClassTuitionReportRowDto>`. Các lời gọi API chỉ định URL gốc dùng hợp đồng đầy đủ, phục vụ các luồng như script seed.
+- Infrastructure sắp xếp theo tên rồi theo ID để thứ tự ổn định khi hai tên trùng nhau. EF Core chạy `Skip` và `Take` trên cơ sở dữ liệu. Báo cáo công nợ tính tổng của toàn lớp và đọc trang trong cùng một giao dịch đọc nhất quán. Đường dẫn tải CSV lấy toàn bộ lượt ghi danh của lớp.
+- Razor Pages mặc định hiển thị 10 dòng và có nút **Trang trước** và **Trang sau** khi có trang tương ứng. URL web dùng `pageNumber` và `pageSize`. Các liên kết phân trang của bảng công nợ giữ lớp đang xem.
+
 ### Lỗi HTTP
 
 | HTTP | Trường hợp |
@@ -187,5 +194,5 @@ Các ca đơn vị dùng xUnit và gọi trực tiếp phương thức Domain th
 | QT05 | `ExamAdmissionTests` | Lớp đã khai giảng với học phí đóng đủ hoặc bằng 0, lớp đang mở và số tiền đã đóng khác học phí phải thu. |
 
 - `ClassTuitionReportStrategyTests` kiểm tra hai định dạng trên cùng dữ liệu, dòng tổng và ký tự đặc biệt trong CSV.
-- Kiểm thử tích hợp xác nhận đăng nhập, phân quyền, ghi danh, tải báo cáo CSV, tra cứu chứng chỉ và các quy tắc phụ thuộc dữ liệu. Các ca PostgreSQL kiểm tra giao dịch đồng thời, như thu vượt công nợ hoặc xác nhận dự thi khi khoản thu cuối đang được ghi nhận.
+- Kiểm thử tích hợp xác nhận đăng nhập, phân quyền, ghi danh, tải báo cáo CSV, tra cứu chứng chỉ và các quy tắc phụ thuộc dữ liệu. Các ca phân trang kiểm tra thứ tự dòng, giới hạn trang, tổng bản ghi và tổng công nợ toàn lớp. Các ca PostgreSQL kiểm tra giao dịch đồng thời, như thu vượt công nợ hoặc xác nhận dự thi khi khoản thu cuối đang được ghi nhận.
 - Docker Compose chạy API và PostgreSQL. GitHub Actions chạy restore, build và test cho các thay đổi vào `main`. Coverlet tạo báo cáo Cobertura và GitHub Actions lưu kèm kết quả test TRX.

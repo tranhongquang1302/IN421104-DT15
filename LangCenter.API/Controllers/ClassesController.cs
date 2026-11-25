@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using LangCenter.API.Security;
 using LangCenter.Application.Classes;
+using LangCenter.Application.Common;
 using LangCenter.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +31,15 @@ public class ClassesController(
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<TrainingClassDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<TrainingClassDto>>> GetAll(CancellationToken ct) =>
-        Ok(await getClasses.HandleAsync(ct));
+    public async Task<IActionResult> GetAll(CancellationToken ct, [FromQuery] int? page = null,
+        [FromQuery] int? pageSize = null)
+    {
+        if (page is null && pageSize is null)
+            return Ok(await getClasses.HandleAsync(ct));
+
+        var paging = PageRequest.Of(page ?? 1, pageSize ?? PageRequest.DefaultPageSize);
+        return Ok(await getClasses.HandleAsync(paging, ct));
+    }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<TrainingClassDto>(StatusCodes.Status200OK)]

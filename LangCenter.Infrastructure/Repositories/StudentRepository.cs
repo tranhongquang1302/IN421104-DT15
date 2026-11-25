@@ -34,8 +34,19 @@ public class StudentRepository(LangCenterDbContext db) : IStudentRepository
         db.Students.AsNoTracking().FirstOrDefaultAsync(student => student.Id == id, ct);
 
     public async Task<IReadOnlyList<Student>> GetAllAsync(CancellationToken ct = default) =>
-        await db.Students.AsNoTracking()
+        await OrderStudents().ToListAsync(ct);
+
+    public async Task<(IReadOnlyList<Student> Items, int TotalCount)> GetPageAsync(int skip, int take,
+        CancellationToken ct = default)
+    {
+        var query = OrderStudents();
+        var totalCount = await query.CountAsync(ct);
+        var items = await query.Skip(skip).Take(take).ToListAsync(ct);
+        return (items, totalCount);
+    }
+
+    private IOrderedQueryable<Student> OrderStudents() =>
+        db.Students.AsNoTracking()
             .OrderBy(student => student.FullName)
-            .ThenBy(student => student.Id)
-            .ToListAsync(ct);
+            .ThenBy(student => student.Id);
 }

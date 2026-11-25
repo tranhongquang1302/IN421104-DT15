@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using LangCenter.API.Security;
+using LangCenter.Application.Common;
 using LangCenter.Application.Students;
 using LangCenter.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -13,9 +14,16 @@ public class StudentsModel(GetStudentsQueryHandler getStudents, CreateStudentCom
     [BindProperty]
     public StudentInput Input { get; set; } = new();
 
-    public IReadOnlyList<StudentDto> Students { get; private set; } = [];
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
 
-    public async Task OnGetAsync(CancellationToken ct) => Students = await getStudents.HandleAsync(ct);
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = PageRequest.DefaultPageSize;
+
+    public PagedResult<StudentDto> Students { get; private set; } = null!;
+
+    public async Task OnGetAsync(CancellationToken ct) =>
+        Students = await getStudents.HandleAsync(PageRequest.Of(PageNumber, PageSize), ct);
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {

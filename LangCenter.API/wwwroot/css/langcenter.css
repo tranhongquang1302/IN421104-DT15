@@ -301,6 +301,9 @@ td small { overflow-wrap: anywhere; }
 .report, .report .table-scroll, .detail-actions { margin-top: 1.12rem; }
 .certificate-qr { display: block; max-width: 100%; height: auto; margin: .7rem 0; border: 1px solid var(--line); border-radius: .6rem; background: white; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; }
+.pagination { display: flex; flex-wrap: wrap; justify-content: end; align-items: center; gap: .6rem; margin-top: .9rem; }
+.pagination span { color: var(--muted); font-size: .87rem; font-variant-numeric: tabular-nums; }
+#tuition-report { scroll-margin-top: 5rem; }
 
 .login-grid {
     display: grid;
