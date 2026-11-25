@@ -9,7 +9,7 @@ services:
       JwtSettings__SigningKey: "${LANGCENTER_JWT_SIGNING_KEY:-}"
       DevelopmentAccounts__Password: "${LANGCENTER_DEMO_PASSWORD:-}"
       CertificateLinks__PublicBaseUrl: "${LANGCENTER_CERTIFICATE_BASE_URL:-http://localhost:8080}"
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=langcenter;Username=langcenter;Password=langcenter-local"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${LANGCENTER_DATABASE_NAME:-langcenter};Username=langcenter;Password=langcenter-local"
     ports:
       - "${LANGCENTER_BIND_ADDRESS:-127.0.0.1}:8080:8080"
     healthcheck:

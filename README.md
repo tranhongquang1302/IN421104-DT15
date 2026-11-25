@@ -96,13 +96,15 @@ Sau khi Docker Compose sẵn sàng, chạy trong thư mục gốc của repo.
 pwsh -File scripts/Seed-Demo.ps1
 ```
 
-Mỗi lần chạy tạo ba lớp và năm học viên demo với email riêng.
+Đợt mặc định `K01` tạo 10 lớp, 317 hồ sơ học viên, 338 lượt ghi danh, 240 khoản thanh toán và 4 chứng chỉ. Mỗi lớp có từ 31 đến 37 học viên đã ghi danh. Trong bộ seed, các lớp đủ sĩ số có số ghi danh bằng đúng ngưỡng khai giảng. Dữ liệu dùng tên giả lập và email `example.test`. Báo cáo công nợ có học viên chưa đóng, đóng một phần và đóng đủ. Một số học viên dùng cùng hồ sơ để ghi danh hai lớp.
 
 | Kịch bản | Kết quả dùng để demo |
 | --- | --- |
-| Demo English A1 | Lớp đã khai giảng. `PartialEnrollmentId` còn nợ 600 đồng. `EligibleEnrollmentId` đã đóng đủ, được xác nhận dự thi và sẵn sàng để cấp chứng chỉ. |
-| Demo Tiếng Nhật N5 | Lớp `UnderfilledClassId` có 1 trong 2 học viên cần thiết. Có thể thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm. |
-| Demo Tiếng Anh B1 | Học viên đã đóng đủ, được xác nhận dự thi và đã có chứng chỉ. Mở `CertificateVerifyUrl` để xem kết quả tra cứu công khai. |
+| Tiếng Anh A1 | Lớp đã khai giảng với 36 học viên. `PartialEnrollmentId` đã đóng 1.200.000 đồng và còn nợ 1.200.000 đồng. `EligibleEnrollmentId` đã đóng đủ, được xác nhận dự thi và sẵn sàng để cấp chứng chỉ. |
+| Tiếng Nhật N5 | Lớp `UnderfilledClassId` có 31 trong 32 học viên cần thiết. Thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm một học viên. |
+| Tiếng Anh B1 | Lớp đã khai giảng với 37 học viên. Mở `CertificateVerifyUrl` để xem một chứng chỉ đã cấp trên trang tra cứu công khai. |
+
+Mỗi mã đợt được dùng một lần. Để tạo một bộ dữ liệu độc lập sau khi đã dùng các kịch bản của đợt trước, chạy `pwsh -File scripts/Seed-Demo.ps1 -BatchCode K02`.
 
 ### Cấp chứng chỉ và tra cứu qua QR
 
