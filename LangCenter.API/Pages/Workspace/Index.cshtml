@@ -62,24 +62,62 @@
         {
             <div class="table-scroll">
                 <table>
-                    <thead><tr><th scope="col">Tên lớp</th><th scope="col">Sĩ số / tối thiểu</th><th scope="col">Trạng thái</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th scope="col">Tên lớp</th>
+                            <th scope="col" class="enrollment-column">Sĩ số / tối thiểu</th>
+                            @if (canManageClasses)
+                            {
+                                <th scope="col" class="class-action">Thao tác</th>
+                            }
+                        </tr>
+                    </thead>
                     <tbody>
                     @foreach (var row in Model.Classes)
                     {
                         var trainingClass = row.TrainingClass;
+                        var open = trainingClass.Status == nameof(ClassStatus.Open);
+                        var missingEnrollment = trainingClass.MinimumEnrollment - row.EnrollmentCount;
                         <tr>
                             <td>
                                 @if (canManageClasses)
                                 {
-                                    <a asp-page="/Workspace/ClassDetails" asp-route-id="@trainingClass.Id">@trainingClass.Name</a>
+                                    <a class="class-name" asp-page="/Workspace/ClassDetails" asp-route-id="@trainingClass.Id">@trainingClass.Name</a>
                                 }
                                 else
                                 {
-                                    <a asp-page="/Workspace/Tuition" asp-route-classId="@trainingClass.Id">@trainingClass.Name</a>
+                                    <a class="class-name" asp-page="/Workspace/Tuition" asp-route-classId="@trainingClass.Id">@trainingClass.Name</a>
+                                }
+                                <span class="class-state @(open ? null : "started")">@PortalDisplay.ClassStatus(trainingClass.Status)</span>
+                            </td>
+                            <td class="dashboard-enrollment">
+                                <div class="enrollment-reading">
+                                    <strong>@row.EnrollmentCount / @trainingClass.MinimumEnrollment</strong>
+                                    @if (open)
+                                    {
+                                        <small class="enrollment-note @(missingEnrollment > 0 ? "below-minimum" : null)">
+                                            @(missingEnrollment > 0 ? $"Thiếu {missingEnrollment} học viên" : "Đủ sĩ số")
+                                        </small>
+                                    }
+                                </div>
+                                @if (open)
+                                {
+                                    <progress class="enrollment-progress @(missingEnrollment > 0 ? "below-minimum" : null)"
+                                              value="@Math.Min(row.EnrollmentCount, trainingClass.MinimumEnrollment)"
+                                              max="@trainingClass.MinimumEnrollment" aria-hidden="true"></progress>
                                 }
                             </td>
-                            <td class="dashboard-enrollment">@row.EnrollmentCount / @trainingClass.MinimumEnrollment</td>
-                            <td><span class="badge @(trainingClass.Status == nameof(ClassStatus.Started) ? "success" : "neutral")">@PortalDisplay.ClassStatus(trainingClass.Status)</span></td>
+                            @if (canManageClasses)
+                            {
+                                <td class="class-action">
+                                    @if (open && missingEnrollment > 0)
+                                    {
+                                        <a class="button secondary enrollment-link" asp-page="/Workspace/ClassDetails"
+                                           asp-route-id="@trainingClass.Id" asp-fragment="enroll-student"
+                                           aria-label="Ghi danh cho lớp @trainingClass.Name"><span aria-hidden="true">+</span> Ghi danh</a>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                     </tbody>

@@ -14,6 +14,13 @@ else
 <header class="page-heading"><div><h1>@Model.Enrollment.StudentName</h1><p>Lượt ghi danh · @Model.Enrollment.ClassName</p></div>
     <span class="badge">@PortalDisplay.ClassStatus(Model.Enrollment.ClassStatus)</span>
 </header>
+@if (Model.RecordedPaymentAmount is { } recordedAmount)
+{
+    <div class="notice success action-feedback" role="status">
+        <strong>Đã ghi nhận khoản thanh toán</strong>
+        <p>Số tiền ghi nhận <strong>@recordedAmount</strong> · Còn nợ <strong>@PortalDisplay.Money(Model.Balance.OutstandingAmount)</strong></p>
+    </div>
+}
 <div asp-validation-summary="All" class="validation" role="alert"></div>
 <section class="panel">
     <h2>Số dư học phí</h2>
@@ -32,7 +39,8 @@ else
                 <input type="hidden" name="requestId" value="@Model.RequestId" />
                 <div class="field">
                     <label for="amount">Số tiền thu (đồng)</label>
-                    <input id="amount" name="amount" type="number" min="1" max="@Model.Balance.OutstandingAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="1" value="@Model.Amount?.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                    <input id="amount" name="amount" type="number" min="1" max="@Model.Balance.OutstandingAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="1" value="@Model.Amount?.ToString(System.Globalization.CultureInfo.InvariantCulture)" aria-describedby="payment-limit" required />
+                    <small id="payment-limit">Có thể thu tối đa @PortalDisplay.Money(Model.Balance.OutstandingAmount).</small>
                 </div>
                 <button type="submit" class="button primary">Ghi nhận thanh toán</button>
             </form>

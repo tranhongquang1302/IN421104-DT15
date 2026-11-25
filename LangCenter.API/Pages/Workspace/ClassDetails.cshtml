@@ -2,14 +2,29 @@
 @model LangCenter.API.Pages.Workspace.ClassDetailsModel
 @{
     ViewData["Title"] = Model.Class.Name;
-    var open = Model.Class.Status == "Open";
+    var open = Model.Class.Status == nameof(ClassStatus.Open);
+    var missingEnrollment = Model.Class.MinimumEnrollment - Model.Roster.Count;
 }
 <a class="back-link" asp-page="/Workspace/Classes">← Danh sách lớp</a>
 <header class="page-heading">
     <div><h1>@Model.Class.Name</h1><p>Sĩ số tối thiểu @Model.Class.MinimumEnrollment · Học phí @PortalDisplay.Money(Model.Class.TuitionFee)</p></div>
     <span class="badge @(open ? "neutral" : "success")">@PortalDisplay.ClassStatus(Model.Class.Status)</span>
 </header>
-<div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+@if (Model.LaunchRejected)
+{
+    <div class="notice warning action-feedback" role="alert">
+        <div asp-validation-summary="ModelOnly"></div>
+        @if (open && missingEnrollment > 0)
+        {
+            <p>Lớp cần thêm @missingEnrollment học viên để khai giảng.</p>
+            <a class="text-action" href="#enroll-student">Đến phần ghi danh</a>
+        }
+    </div>
+}
+else
+{
+    <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+}
 <div class="split">
     <section class="panel" aria-labelledby="roster">
         <div class="panel-heading"><h2 id="roster">Học viên trong lớp</h2><span class="badge">@Model.Roster.Count ghi danh</span></div>
@@ -34,8 +49,8 @@
     <div class="stack">
         @if (open)
         {
-            <section class="panel">
-                <h2>Ghi danh học viên</h2>
+            <section class="panel" aria-labelledby="enroll-student">
+                <h2 id="enroll-student" tabindex="-1">Ghi danh học viên</h2>
                 @if (Model.AvailableStudents.Count == 0)
                 {
                     <p class="muted">Chưa có học viên để thêm vào lớp.</p>
@@ -52,14 +67,16 @@
                             </select>
                             <span asp-validation-for="StudentId" class="validation"></span>
                         </div>
-                        <button type="submit" class="button primary">Ghi danh</button>
+                        <button type="submit" class="button @(missingEnrollment > 0 ? "primary" : "secondary")">Ghi danh</button>
                     </form>
                 }
             </section>
             <section class="panel">
                 <h2>Khai giảng</h2>
                 <p class="muted">Đã ghi danh @Model.Roster.Count / @Model.Class.MinimumEnrollment học viên theo sĩ số tối thiểu.</p>
-                <form method="post" asp-page-handler="Launch"><button type="submit" class="button secondary">Khai giảng lớp</button></form>
+                <form method="post" asp-page-handler="Launch">
+                    <button type="submit" class="button @(missingEnrollment > 0 ? "secondary" : "primary")">Khai giảng lớp</button>
+                </form>
             </section>
         }
         else

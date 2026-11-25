@@ -18,6 +18,7 @@ public class ClassDetailsModel(GetClassByIdQueryHandler getClass, GetStudentsQue
     public TrainingClassDto Class { get; private set; } = null!;
     public IReadOnlyList<ClassEnrollmentRow> Roster { get; private set; } = [];
     public IReadOnlyList<StudentDto> AvailableStudents { get; private set; } = [];
+    public bool LaunchRejected { get; private set; }
 
     public Task<IActionResult> OnGetAsync(Guid id, CancellationToken ct) => ShowAsync(id, ct);
 
@@ -35,10 +36,14 @@ public class ClassDetailsModel(GetClassByIdQueryHandler getClass, GetStudentsQue
 
     public async Task<IActionResult> OnPostLaunchAsync(Guid id, CancellationToken ct)
     {
-        if (!await TrySaveAsync(() => launch.HandleAsync(new LaunchClassCommand(id), ct)))
+        TrainingClassDto? launched = null;
+        if (!await TrySaveAsync(async () => launched = await launch.HandleAsync(new LaunchClassCommand(id), ct)))
+        {
+            LaunchRejected = true;
             return await ShowAsync(id, ct);
+        }
 
-        TempData["StatusMessage"] = "Lớp đã khai giảng.";
+        TempData["StatusMessage"] = $"Đã khai giảng lớp {launched!.Name}.";
         return RedirectToPage(new { id });
     }
 

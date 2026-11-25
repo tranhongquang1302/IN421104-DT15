@@ -42,25 +42,38 @@ public static class PortalWorkflow
         var dashboard = await PortalForms.GetPageAsync(registrar, "/workspace");
         Assert.Contains("Thêm học viên", dashboard);
         Assert.DoesNotContain("Thu học phí", dashboard);
-        Assert.Contains("class=\"dashboard-enrollment\">0 / 1<", dashboard);
+        Assert.Contains(">0 / 1</strong>", dashboard);
+        Assert.Contains("Thiếu 1 học viên", dashboard);
+        Assert.Contains($"href=\"{classPath}#enroll-student\"", dashboard);
+        cashierHome = await PortalForms.GetPageAsync(cashier, "/workspace");
+        Assert.Contains("Thiếu 1 học viên", cashierHome);
+        Assert.DoesNotContain("#enroll-student", cashierHome);
 
         var classPage = await PortalForms.GetPageAsync(registrar, classPath);
         using var earlyLaunch = await PortalForms.PostAsync(registrar, $"{classPath}?handler=Launch", classPage);
-        Assert.Contains("Lớp chưa đủ sĩ số", await PortalForms.ReadHtmlAsync(earlyLaunch));
+        var launchBlocked = await PortalForms.ReadHtmlAsync(earlyLaunch);
+        Assert.Contains("Lớp chưa đủ sĩ số", launchBlocked);
+        Assert.Contains("Lớp cần thêm 1 học viên để khai giảng.", launchBlocked);
+        Assert.Contains("href=\"#enroll-student\"", launchBlocked);
 
         var studentId = MatchValue(classPage, "value=\"([0-9a-f-]{36})\">Portal Student");
         using var enrolled = await PortalForms.PostAsync(registrar, $"{classPath}?handler=Enroll", classPage,
             new Dictionary<string, string> { ["StudentId"] = studentId });
         Assert.Equal(HttpStatusCode.Redirect, enrolled.StatusCode);
 
+        var readyDashboard = await PortalForms.GetPageAsync(registrar, "/workspace");
+        Assert.Contains("Đủ sĩ số", readyDashboard);
+        Assert.DoesNotContain($"href=\"{classPath}#enroll-student\"", readyDashboard);
         var roster = await PortalForms.GetPageAsync(registrar, classPath);
         var enrollmentPath = MatchValue(roster, "href=\"(/workspace/enrollments/[0-9a-f-]{36})\"");
         using var launched = await PortalForms.PostAsync(registrar, $"{classPath}?handler=Launch", roster);
         Assert.Equal(HttpStatusCode.Redirect, launched.StatusCode);
+        var launchedClass = await PortalForms.GetPageAsync(registrar, classPath);
+        Assert.Contains("Đã khai giảng lớp Portal English A1.", launchedClass);
         dashboard = await PortalForms.GetPageAsync(registrar, "/workspace");
         Assert.Contains("Portal English A1", dashboard);
         Assert.Contains(classPath, dashboard);
-        Assert.Contains("class=\"dashboard-enrollment\">1 / 1<", dashboard);
+        Assert.Contains(">1 / 1</strong>", dashboard);
 
         var registrarEnrollment = await PortalForms.GetPageAsync(registrar, enrollmentPath);
         using var unpaidExam = await PortalForms.PostAsync(registrar, $"{enrollmentPath}?handler=Exam", registrarEnrollment);
@@ -75,10 +88,39 @@ public static class PortalWorkflow
         Assert.DoesNotContain("Xác nhận dự thi", cashierEnrollment);
         using var cashierExam = await PortalForms.PostAsync(cashier, $"{enrollmentPath}?handler=Exam", cashierEnrollment);
         Assert.Contains("/forbidden", cashierExam.Headers.Location?.OriginalString);
-        var requestId = MatchValue(cashierEnrollment, "name=\"requestId\" value=\"([0-9a-f-]{36})\"");
-        using var paid = await PortalForms.PostAsync(cashier, $"{enrollmentPath}?handler=Payment", cashierEnrollment,
-            new Dictionary<string, string> { ["amount"] = "1000", ["requestId"] = requestId });
+        const string paymentRequestId = "name=\"requestId\" value=\"([0-9a-f-]{36})\"";
+        var paymentPath = $"{enrollmentPath}?handler=Payment";
+        var firstPayment = new Dictionary<string, string>
+        {
+            ["amount"] = "400",
+            ["requestId"] = MatchValue(cashierEnrollment, paymentRequestId)
+        };
+        using var partialPayment = await PortalForms.PostAsync(cashier, paymentPath, cashierEnrollment, firstPayment);
+        Assert.Equal(HttpStatusCode.Redirect, partialPayment.StatusCode);
+        var paymentFeedback = await PortalForms.GetPageAsync(cashier, enrollmentPath);
+        Assert.Contains("Đã ghi nhận khoản thanh toán", paymentFeedback);
+        Assert.Contains("Số tiền ghi nhận <strong>400 đ</strong> · Còn nợ <strong>600 đ</strong>", paymentFeedback);
+        var refreshedBalance = await PortalForms.GetPageAsync(cashier, enrollmentPath);
+        Assert.DoesNotContain("Đã ghi nhận khoản thanh toán", refreshedBalance);
+
+        using var repeatedPayment = await PortalForms.PostAsync(cashier, paymentPath, cashierEnrollment, firstPayment);
+        Assert.Equal(HttpStatusCode.Redirect, repeatedPayment.StatusCode);
+        var repeatedFeedback = await PortalForms.GetPageAsync(cashier, enrollmentPath);
+        Assert.Contains("Số tiền ghi nhận <strong>400 đ</strong> · Còn nợ <strong>600 đ</strong>", repeatedFeedback);
+
+        var finalRequestId = MatchValue(repeatedFeedback, paymentRequestId);
+        using var overpayment = await PortalForms.PostAsync(cashier, paymentPath, repeatedFeedback,
+            new Dictionary<string, string> { ["amount"] = "601", ["requestId"] = finalRequestId });
+        var paymentBlocked = await PortalForms.ReadHtmlAsync(overpayment);
+        Assert.Contains("Khoản thanh toán vượt quá học phí còn nợ.", paymentBlocked);
+        Assert.Contains("Có thể thu tối đa 600 đ.", paymentBlocked);
+        Assert.DoesNotContain("Đã ghi nhận khoản thanh toán", paymentBlocked);
+
+        using var paid = await PortalForms.PostAsync(cashier, paymentPath, paymentBlocked,
+            new Dictionary<string, string> { ["amount"] = "600", ["requestId"] = finalRequestId });
         Assert.Equal(HttpStatusCode.Redirect, paid.StatusCode);
+        var completePayment = await PortalForms.GetPageAsync(cashier, enrollmentPath);
+        Assert.Contains("Số tiền ghi nhận <strong>600 đ</strong> · Còn nợ <strong>0 đ</strong>", completePayment);
         var report = await PortalForms.GetPageAsync(cashier, $"/workspace/tuition?classId={classId}");
         Assert.Contains("Portal English A1", report);
         Assert.Contains("Portal Student", report);

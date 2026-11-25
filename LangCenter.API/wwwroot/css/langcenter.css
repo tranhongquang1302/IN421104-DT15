@@ -154,11 +154,39 @@ small { display: block; color: var(--muted); font-size: .8rem; }
 .dashboard-grid .text-action { text-decoration: none; }
 .dashboard-grid .text-action:hover { text-decoration: underline; }
 .dashboard-grid .table-scroll { border-width: 1px 0 0; border-radius: 0 0 .7rem .7rem; }
-.dashboard-grid th { white-space: normal; }
-.dashboard-grid td a { color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
-.dashboard-grid td a:hover { color: var(--accent-dark); text-decoration: underline; }
+.dashboard-grid :is(th, td) { padding-inline: 1rem; }
+.dashboard-grid th { background: #f1f5ef; white-space: normal; }
+.dashboard-grid td { padding-block: .78rem; }
+.dashboard-grid .class-name { display: block; width: fit-content; color: var(--ink); font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.dashboard-grid .class-name:hover { color: var(--accent-dark); text-decoration: underline; }
+.class-state { display: flex; align-items: baseline; gap: .38rem; margin-top: .18rem; color: var(--muted); font-size: .78rem; line-height: 1.3; }
+.class-state::before { content: ""; flex: 0 0 .36rem; height: .36rem; align-self: center; border-radius: 50%; background: #b98643; }
+.class-state.started::before { background: #38806a; }
 .dashboard-grid .empty { border-top: 1px solid var(--line); padding-inline: 1rem; }
-.dashboard-enrollment { font-variant-numeric: tabular-nums; color: var(--muted); }
+.enrollment-column { width: 35%; }
+.dashboard-enrollment { font-variant-numeric: tabular-nums; }
+.enrollment-reading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .08rem .6rem; line-height: 1.35; }
+.enrollment-reading strong { font-weight: 720; }
+.enrollment-progress {
+    appearance: none;
+    display: block;
+    width: min(100%, 10.5rem);
+    height: .25rem;
+    margin: .42rem 0 0;
+    border: 0;
+    border-radius: 1rem;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+.enrollment-progress.below-minimum { color: #ad7a3c; background: #ede8dc; }
+.enrollment-progress::-webkit-progress-bar { border-radius: inherit; background: transparent; }
+.enrollment-progress::-webkit-progress-value { border-radius: inherit; background: currentColor; }
+.enrollment-progress::-moz-progress-bar { border-radius: inherit; background: currentColor; }
+.enrollment-note { color: var(--accent-dark); font-size: .76rem; }
+.enrollment-note.below-minimum { color: #745018; }
+.dashboard-grid .class-action { width: 1%; text-align: right; white-space: nowrap; }
+.dashboard-grid .enrollment-link { gap: .3rem; min-height: 2.2rem; padding: .32rem .62rem; font-size: .81rem; }
+.enrollment-link span { font-size: 1rem; line-height: 1; }
 .dashboard-summary { margin: 0; }
 .dashboard-summary > div { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; padding: .74rem 1rem; border-top: 1px solid var(--line); }
 .dashboard-summary dt { color: var(--muted); font-size: .86rem; }
@@ -255,6 +283,10 @@ td small { overflow-wrap: anywhere; }
 .notice.warning, .validation-summary-errors { border-color: #efd0c0; background: #fdf0e8; color: #842f1c; }
 .validation-summary-errors { padding: .65rem .8rem; border: 1px solid #efd0c0; border-radius: .59rem; }
 .validation-summary-errors ul { margin: 0; padding-left: 1.2rem; }
+.action-feedback p, .action-feedback .text-action { margin-top: .24rem; }
+.action-feedback .text-action { display: inline-block; color: inherit; }
+.action-feedback .validation-summary-errors { padding: 0; border: 0; background: transparent; font-weight: 700; }
+.action-feedback .validation-summary-errors ul { padding: 0; list-style: none; }
 .validation-summary-valid, .field-validation-valid { display: none; }
 .field-validation-error { color: #842f1c; font-size: .85rem; }
 .empty { padding: .78rem 0; color: var(--muted); }
@@ -341,8 +373,10 @@ td small { overflow-wrap: anywhere; }
     .navigation { gap: 0; }
     .navigation a { padding-inline: .29rem; font-size: .79rem; }
     .sign-out .button { padding-inline: .45rem; font-size: .78rem; }
-    .dashboard-grid :is(th, td) { padding-inline: .45rem; }
-    .dashboard-grid .badge { white-space: normal; }
+    .dashboard-grid :is(th, td) { padding-inline: .5rem; }
+    .enrollment-column { width: 31%; }
+    .dashboard-grid .enrollment-link { min-height: 2.75rem; padding-inline: .48rem; }
+    .enrollment-link span { display: none; }
     .metric-grid, .lookup-form { grid-template-columns: 1fr; }
     .lookup-form .button { justify-self: start; }
 }

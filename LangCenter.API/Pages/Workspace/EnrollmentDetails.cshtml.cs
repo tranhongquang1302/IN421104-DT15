@@ -22,12 +22,20 @@ public class EnrollmentDetailsModel(IEnrollmentWorkspaceQuery enrollments, GetTu
     public bool CanConfirmExam { get; private set; }
     public bool CanIssueCertificate { get; private set; }
     public decimal? Amount { get; private set; }
+    public string? RecordedPaymentAmount { get; private set; }
     public Guid RequestId { get; private set; } = Guid.NewGuid();
 
     public Uri? VerificationUrl => CanIssueCertificate && Enrollment.Certificate is { } certificate
         ? links.GetPublicVerificationUrl(certificate.LookupCode) : null;
 
-    public Task<IActionResult> OnGetAsync(Guid id, CancellationToken ct) => ShowAsync(id, ct);
+    public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken ct)
+    {
+        var page = await ShowAsync(id, ct);
+        if (CanCollect)
+            RecordedPaymentAmount = TempData[PaymentAmountKey(id)] as string;
+
+        return page;
+    }
 
     public async Task<IActionResult> OnPostPaymentAsync(Guid id, decimal? amount, Guid? requestId, CancellationToken ct)
     {
@@ -40,10 +48,14 @@ public class EnrollmentDetailsModel(IEnrollmentWorkspaceQuery enrollments, GetTu
         if (amount is null)
             ModelState.AddModelError(string.Empty, "Hãy nhập số tiền cần thu.");
 
-        if (!await TrySaveAsync(() => recordPayment.HandleAsync(new RecordPaymentCommand(id, amount!.Value, RequestId), ct)))
+        PaymentDto? payment = null;
+        if (!await TrySaveAsync(async () =>
+                payment = await recordPayment.HandleAsync(new RecordPaymentCommand(id, amount!.Value, RequestId), ct)))
+        {
             return await ShowAsync(id, ct);
+        }
 
-        TempData["StatusMessage"] = "Đã ghi nhận khoản thanh toán.";
+        TempData[PaymentAmountKey(id)] = PortalDisplay.Money(payment!.Amount);
         return RedirectToPage(new { id });
     }
 
@@ -98,4 +110,6 @@ public class EnrollmentDetailsModel(IEnrollmentWorkspaceQuery enrollments, GetTu
     }
 
     private async Task<bool> HasPermissionAsync(string policy) => (await authorization.AuthorizeAsync(User, policy)).Succeeded;
+
+    private static string PaymentAmountKey(Guid id) => $"RecordedPaymentAmount:{id}";
 }
