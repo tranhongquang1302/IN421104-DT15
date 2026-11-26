@@ -169,6 +169,14 @@ Báo cáo tính bốn tầng ứng dụng và bỏ qua mã migration sinh tự �
 
 Các khoảng số là mục trong kế hoạch 48 công việc. Commit bổ sung để cập nhật danh sách thành viên được tính riêng.
 
+### Nâng cấp lịch học
+
+| Người phụ trách | Commit | Phần việc |
+| --- | --- | --- |
+| Trần Hồng Quang | `feat(schedule): add class scheduling and conflict checks` | Mô hình phòng, giảng viên và buổi học, migration PostgreSQL, API, kiểm tra trùng lịch và kiểm thử backend |
+| Võ Văn Bảo Quốc | `feat(web): add weekly schedule to the reception workspace` | Lịch tuần, form xếp và đổi lịch, màn hình danh mục, kiểm thử Razor Pages và tài liệu thiết kế |
+| Chưa phân công | `fix(demo): align class names with the weekly schedule` | Đồng bộ tên lớp A1, A2 và N5 trong dữ liệu seed và hướng dẫn demo |
+
 ## Quy trình làm việc
 
 1. Nhận GitHub Issue có phạm vi, quy tắc liên quan và tiêu chí hoàn thành.

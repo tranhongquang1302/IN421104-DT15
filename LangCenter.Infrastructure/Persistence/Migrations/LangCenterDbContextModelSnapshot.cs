@@ -50,6 +50,43 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.ToTable("certificates", (string)null);
                 });
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.ClassSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InstructorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TrainingClassId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartsAt");
+
+                    b.HasIndex("InstructorId", "StartsAt");
+
+                    b.HasIndex("RoomId", "StartsAt");
+
+                    b.HasIndex("TrainingClassId", "StartsAt");
+
+                    b.ToTable("class_sessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_class_sessions_TimeRange", "\"EndsAt\" > \"StartsAt\"");
+                        });
+                });
+
             modelBuilder.Entity("LangCenter.Domain.Entities.Enrollment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -102,6 +139,31 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.ToTable("exam_admissions", (string)null);
                 });
 
+            modelBuilder.Entity("LangCenter.Domain.Entities.Instructor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("IX_instructors_Code");
+
+                    b.ToTable("instructors", (string)null);
+                });
+
             modelBuilder.Entity("LangCenter.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -130,6 +192,31 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_payments_Amount", "\"Amount\" > 0");
                         });
+                });
+
+            modelBuilder.Entity("LangCenter.Domain.Entities.Room", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("IX_rooms_Code");
+
+                    b.ToTable("rooms", (string)null);
                 });
 
             modelBuilder.Entity("LangCenter.Domain.Entities.Student", b =>
@@ -394,6 +481,27 @@ namespace LangCenter.Infrastructure.Persistence.Migrations
                     b.HasOne("LangCenter.Domain.Entities.Enrollment", null)
                         .WithMany()
                         .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LangCenter.Domain.Entities.ClassSession", b =>
+                {
+                    b.HasOne("LangCenter.Domain.Entities.Instructor", null)
+                        .WithMany()
+                        .HasForeignKey("InstructorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LangCenter.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LangCenter.Domain.Entities.TrainingClass", null)
+                        .WithMany()
+                        .HasForeignKey("TrainingClassId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

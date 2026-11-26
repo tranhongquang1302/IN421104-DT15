@@ -30,6 +30,7 @@ Nhân viên thao tác qua giao diện Razor Pages. Swagger hỗ trợ thử và 
 | Phương án làm việc | Hành vi dự kiến | Phụ trách |
 | --- | --- | --- |
 | Báo cáo công nợ học phí theo lớp | Thu ngân hoặc quản trị viên xem số phải thu, số đã thu và số còn nợ theo từng lượt ghi danh và tổng của lớp, đồng thời tải báo cáo CSV | Phạm Quốc Thanh |
+| Lịch học, phòng học và giảng viên | Admin và Giáo vụ thêm phòng, giảng viên, xếp và đổi lịch từng buổi, xem lịch tuần và lọc theo phòng | Trần Hồng Quang phụ trách backend và kiểm thử nghiệp vụ. Võ Văn Bảo Quốc phụ trách giao diện, kiểm thử Razor Pages và tài liệu thiết kế. |
 
 Báo cáo công nợ theo lớp là chức năng mở rộng đã được triển khai ở mục 35–37.
 
@@ -44,6 +45,7 @@ Báo cáo công nợ theo lớp là chức năng mở rộng đã được tri�
 | QT05 | Giáo vụ chỉ xác nhận cho học viên dự thi cuối khóa khi lớp đã khai giảng và lượt ghi danh có số dư học phí bằng 0. | Còn nợ thì bị từ chối và không có bản ghi xác nhận; đóng đủ thì được xác nhận nếu lớp đã khai giảng. |
 | QT06 | Một lượt ghi danh có tối đa một chứng chỉ. Giáo vụ xác nhận học viên đã hoàn thành khóa trước khi cấp và hệ thống yêu cầu bản ghi xác nhận dự thi. | Cấp thành công tạo mã tra cứu; yêu cầu lặp bị từ chối; mã không tồn tại trả 404. |
 | QT07 | Mỗi email thuộc về một hồ sơ học viên. Hệ thống chuẩn hóa email bằng cách bỏ khoảng trắng đầu cuối và chuyển chữ hoa về chữ thường. | Tạo hồ sơ bằng email đã tồn tại trả 409. Tra cứu bằng email đã chuẩn hóa xác định một học viên cùng các lượt ghi danh của học viên đó. |
+| QT08 | Buổi học phải kết thúc sau giờ bắt đầu. Các buổi của cùng lớp, cùng phòng hoặc cùng giảng viên không được chồng giờ. | Hai buổi nối tiếp được lưu. Yêu cầu gây chồng giờ trả 409, kể cả khi hai người xếp lịch đồng thời. |
 
 QR mở URL tra cứu bằng mã riêng của chứng chỉ. Phản hồi công khai gồm họ tên người được cấp, tên lớp và ngày cấp. Dữ liệu đăng nhập, liên lạc và học phí chỉ phục vụ nghiệp vụ nội bộ.
 
