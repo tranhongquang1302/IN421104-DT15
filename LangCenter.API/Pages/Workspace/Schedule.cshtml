@@ -1,0 +1,166 @@
+@page "/workspace/schedule"
+@model LangCenter.API.Pages.Workspace.ScheduleModel
+@using LangCenter.Application.Scheduling
+@{
+    ViewData["Title"] = "Lịch học";
+    var beginning = Model.Calendar.WeekStart;
+    var ending = beginning.AddDays(6);
+    var week = beginning.ToString("yyyy-MM-dd");
+    var shifts = new[] { "Sáng", "Chiều", "Tối" };
+}
+<header class="page-heading schedule-heading">
+    <h1>Lịch học</h1>
+    <div class="schedule-actions">
+        <a class="button" asp-page="/Workspace/ScheduleResources">Phòng và giảng viên</a>
+        <a class="button primary" asp-page="/Workspace/Schedule" asp-route-week="@week" asp-route-roomId="@Model.RoomId"
+           asp-route-classId="@Model.ClassId" asp-route-edit="true" asp-fragment="schedule-editor"><span aria-hidden="true">＋</span> Xếp lịch</a>
+    </div>
+</header>
+<div class="schedule-toolbar">
+    <nav class="schedule-week" aria-label="Chuyển tuần">
+        <a class="button schedule-arrow" aria-label="Tuần trước" asp-page="/Workspace/Schedule" asp-route-roomId="@Model.RoomId"
+           asp-route-classId="@Model.ClassId" asp-route-week="@beginning.AddDays(-7).ToString("yyyy-MM-dd")">‹</a>
+        <strong>@beginning.ToString("dd/MM") – @ending.ToString("dd/MM/yyyy")</strong>
+        <a class="button schedule-arrow" aria-label="Tuần sau" asp-page="/Workspace/Schedule" asp-route-roomId="@Model.RoomId"
+           asp-route-classId="@Model.ClassId" asp-route-week="@beginning.AddDays(7).ToString("yyyy-MM-dd")">›</a>
+        <a class="text-action" asp-page="/Workspace/Schedule" asp-route-roomId="@Model.RoomId" asp-route-classId="@Model.ClassId">Tuần này</a>
+    </nav>
+    <form method="get" class="schedule-filter">
+        <input type="hidden" name="week" value="@week" />
+        <input type="hidden" name="classId" value="@Model.ClassId" />
+        <div class="field">
+            <label asp-for="RoomId">Phòng</label>
+            <select asp-for="RoomId">
+                <option value="">Tất cả phòng</option>
+                @foreach (var room in Model.Resources.Rooms) { <option value="@room.Id">@room.Code</option> }
+            </select>
+        </div>
+        <button class="button" type="submit">Lọc</button>
+    </form>
+</div>
+@if (Model.ClassId is Guid selectedClass)
+{
+    <div class="schedule-selection">
+        <span class="badge">@(Model.Classes.FirstOrDefault(row => row.Id == selectedClass)?.Name ?? "Lớp đã chọn")</span>
+        <a class="text-action" asp-page="/Workspace/Schedule" asp-route-week="@week" asp-route-roomId="@Model.RoomId">Xem tất cả lớp</a>
+    </div>
+}
+<span asp-validation-for="Week" class="validation"></span>
+<span asp-validation-for="RoomId" class="validation"></span>
+<span asp-validation-for="ClassId" class="validation"></span>
+@if (Model.ShowEditor)
+{
+    <section class="panel schedule-editor" id="schedule-editor" aria-labelledby="schedule-editor-title">
+        <div class="panel-heading">
+            <h2 id="schedule-editor-title">@(Model.EditingSessionId.HasValue ? "Đổi lịch buổi học" : "Xếp buổi học")</h2>
+            <a class="button" asp-page="/Workspace/Schedule" asp-route-week="@week" asp-route-roomId="@Model.RoomId" asp-route-classId="@Model.ClassId">Đóng</a>
+        </div>
+        @if (!Model.CanSchedule)
+        {
+            <p class="muted">Cần có lớp, phòng học và giảng viên trước khi xếp lịch.</p>
+            <div class="schedule-actions">
+                <a class="text-action" asp-page="/Workspace/Classes">Quản lý lớp</a>
+                <a class="text-action" asp-page="/Workspace/ScheduleResources">Quản lý phòng và giảng viên</a>
+            </div>
+        }
+        else
+        {
+            <form method="post" asp-page="/Workspace/Schedule" asp-route-week="@week" asp-route-roomId="@Model.RoomId"
+                  asp-route-classId="@Model.ClassId" asp-fragment="schedule-editor" class="form-stack">
+                <input asp-for="EditingSessionId" type="hidden" />
+                <div class="schedule-fields">
+                    <div class="field">
+                        <label asp-for="Input.ClassId">Lớp</label>
+                        @if (Model.EditingSessionId.HasValue)
+                        {
+                            <input asp-for="Input.ClassId" type="hidden" />
+                            <p class="schedule-class-value">@(Model.Classes.FirstOrDefault(row => row.Id == Model.Input.ClassId)?.Name)</p>
+                        }
+                        else
+                        {
+                            <select asp-for="Input.ClassId" required>
+                                <option value="">Chọn lớp</option>
+                                @foreach (var row in Model.Classes) { <option value="@row.Id">@row.Name</option> }
+                            </select>
+                        }
+                        <span asp-validation-for="Input.ClassId" class="validation"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.RoomId">Phòng</label>
+                        <select asp-for="Input.RoomId" required>
+                            <option value="">Chọn phòng</option>
+                            @foreach (var room in Model.Resources.Rooms) { <option value="@room.Id">@room.Code · @room.Name</option> }
+                        </select>
+                        <span asp-validation-for="Input.RoomId" class="validation"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.InstructorId">Giảng viên</label>
+                        <select asp-for="Input.InstructorId" required>
+                            <option value="">Chọn giảng viên</option>
+                            @foreach (var teacher in Model.Resources.Instructors) { <option value="@teacher.Id">@teacher.FullName · @teacher.Code</option> }
+                        </select>
+                        <span asp-validation-for="Input.InstructorId" class="validation"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.Date">Ngày</label>
+                        <input asp-for="Input.Date" asp-format="{0:yyyy-MM-dd}" type="date" required />
+                        <span asp-validation-for="Input.Date" class="validation"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.StartTime">Bắt đầu</label>
+                        <input asp-for="Input.StartTime" asp-format="{0:HH:mm}" type="time" required />
+                        <span asp-validation-for="Input.StartTime" class="validation"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.EndTime">Kết thúc</label>
+                        <input asp-for="Input.EndTime" asp-format="{0:HH:mm}" type="time" required />
+                        <span asp-validation-for="Input.EndTime" class="validation"></span>
+                    </div>
+                </div>
+                <div asp-validation-summary="ModelOnly" class="validation schedule-validation" role="alert"></div>
+                <button class="button primary" type="submit">Lưu lịch</button>
+            </form>
+        }
+    </section>
+}
+@if (Model.Calendar.Sessions.Count == 0)
+{
+    <p class="panel empty">Tuần này chưa có buổi học theo bộ lọc.</p>
+}
+else
+{
+    <div class="schedule-calendar" aria-label="Các buổi học trong tuần">
+        <div class="schedule-hours" aria-hidden="true">
+            <div></div>
+            @foreach (var shift in shifts) { <span class="schedule-slot">@shift</span> }
+        </div>
+        @foreach (var day in Model.Days)
+        {
+            <section class="schedule-day @(day.Sessions.Count == 0 ? "schedule-day-empty" : null)" aria-label="@day.Name @day.Date.ToString("dd/MM")">
+                <h2 class="schedule-day-heading">
+                    <span>@day.Name</span>
+                    <time datetime="@day.Date.ToString("yyyy-MM-dd")" aria-current="@(day.Date == Model.Today ? "date" : null)">@day.Date.ToString("dd")</time>
+                </h2>
+                @for (var shift = 0; shift < shifts.Length; shift++)
+                {
+                    var from = shift == 0 ? 0 : shift == 1 ? 12 : 17;
+                    var to = shift == 0 ? 12 : shift == 1 ? 17 : 24;
+                    <div class="schedule-slot">
+                        @foreach (var session in day.Sessions)
+                        {
+                            var start = ScheduleTime.ToLocal(session.StartsAt);
+                            if (start.Hour < from || start.Hour >= to) { continue; }
+                            var end = ScheduleTime.ToLocal(session.EndsAt);
+                            <a class="schedule-session" asp-page="/Workspace/Schedule" asp-route-week="@week" asp-route-roomId="@Model.RoomId"
+                               asp-route-classId="@Model.ClassId" asp-route-sessionId="@session.Id" asp-fragment="schedule-editor">
+                                <span class="schedule-session-time">@start.ToString("HH:mm")–@end.ToString("HH:mm")</span>
+                                <strong>@session.ClassName</strong>
+                                <small>@session.RoomCode · @session.InstructorName</small>
+                            </a>
+                        }
+                    </div>
+                }
+            </section>
+        }
+    </div>
+}

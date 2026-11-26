@@ -55,6 +55,8 @@ Mật khẩu có ít nhất 12 ký tự, gồm chữ hoa, chữ thường, chữ
 
 Mở [LangCenter](http://localhost:8080/) và đăng nhập bằng email theo vai trò cùng mật khẩu demo. Giáo vụ vào **Lớp học** hoặc **Học viên** để tạo hồ sơ, ghi danh, khai giảng, xác nhận dự thi và cấp chứng chỉ. Thu ngân vào **Học phí và công nợ** để tra cứu theo email và làm việc theo từng lớp. Admin có cả hai nhóm chức năng. Trang [tra cứu chứng chỉ](http://localhost:8080/certificates/verify) dùng được khi chưa đăng nhập.
 
+Giáo vụ hoặc Admin mở **Lịch học** để xem lịch tuần. Chọn **Phòng và giảng viên** để thêm danh mục trước khi xếp lịch. Từ trang chi tiết lớp, nút **Xếp lịch** chọn sẵn lớp trong form. Chọn một buổi đã lưu trên lịch để đổi lịch. Nếu trùng phòng hoặc trùng giảng viên, hệ thống hiển thị buổi đang chiếm khung giờ.
+
 ### Đăng nhập trong Swagger
 
 Gọi `POST /api/auth/login` với email và mật khẩu vừa đặt, sao chép `accessToken` rồi dán vào nút **Authorize** trên Swagger. Gọi `GET /api/auth/me` để xem vai trò. Token mặc định có hiệu lực 30 phút. Admin và Registrar có thể tạo và xem học viên qua `/api/students`.

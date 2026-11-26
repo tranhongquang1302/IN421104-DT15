@@ -47,6 +47,14 @@ else
         }
     </section>
     <div class="stack">
+        <section class="panel" aria-labelledby="class-schedule">
+            <div class="panel-heading"><h2 id="class-schedule">Lịch học</h2></div>
+            <div class="schedule-actions">
+                <a asp-page="/Workspace/Schedule" asp-route-classId="@Model.Class.Id" class="button">Xem lịch tuần</a>
+                <a asp-page="/Workspace/Schedule" asp-route-classId="@Model.Class.Id" asp-route-edit="true"
+                   asp-fragment="schedule-editor" class="button secondary">Xếp lịch</a>
+            </div>
+        </section>
         @if (open)
         {
             <section class="panel" aria-labelledby="enroll-student">

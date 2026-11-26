@@ -6,6 +6,7 @@
         (currentPage == "/Workspace/EnrollmentDetails" && ownsClasses && !ownsTuition);
     var tuitionSection = currentPage == "/Workspace/Tuition" ||
         (currentPage == "/Workspace/EnrollmentDetails" && ownsTuition && !ownsClasses);
+    var scheduleSection = currentPage is "/Workspace/Schedule" or "/Workspace/ScheduleResources";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -32,6 +33,8 @@
                 {
                     <a asp-page="/Workspace/Classes" class="@(classSection ? "section-active" : null)"
                        aria-current="@(currentPage == "/Workspace/Classes" ? "page" : null)">Lớp học</a>
+                    <a asp-page="/Workspace/Schedule" class="@(scheduleSection ? "section-active" : null)"
+                       aria-current="@(currentPage == "/Workspace/Schedule" ? "page" : null)">Lịch học</a>
                     <a asp-page="/Workspace/Students" aria-current="@(currentPage == "/Workspace/Students" ? "page" : null)">Học viên</a>
                 }
                 @if (ownsTuition)

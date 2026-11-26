@@ -148,6 +148,80 @@ small { display: block; color: var(--muted); font-size: .8rem; }
 .panel > .muted { margin: .55rem 0 .85rem; }
 .text-action { font-size: .85rem; font-weight: 680; }
 
+.schedule-heading { margin-bottom: 1.05rem; }
+.schedule-actions, .schedule-toolbar, .schedule-week, .schedule-filter, .schedule-selection {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .55rem;
+}
+.schedule-toolbar { justify-content: space-between; margin-bottom: .8rem; }
+.schedule-week strong { font-variant-numeric: tabular-nums; padding: 0 .35rem; }
+.schedule-arrow { width: 2.7rem; padding: .25rem; border-color: var(--line); background: var(--surface); font-size: 1.25rem; }
+.schedule-filter .field { display: flex; align-items: center; gap: .55rem; }
+.schedule-filter select { width: auto; min-width: 8.5rem; }
+.schedule-selection { margin: .3rem 0 .85rem; }
+.schedule-editor { margin-bottom: .95rem; scroll-margin-top: 6.6rem; }
+.schedule-fields, .schedule-resource-grid { display: grid; gap: .95rem; }
+.schedule-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.schedule-fields .field > :is(input, select) { min-width: 0; }
+.schedule-class-value { padding: .55rem 0; font-weight: 650; overflow-wrap: anywhere; }
+.schedule-validation.validation-summary-errors { padding: .6rem .8rem; border-radius: .55rem; background: #f9e9e1; color: #832e22; }
+.schedule-calendar {
+    display: grid;
+    grid-template-columns: 3.3rem repeat(7, minmax(0, 1fr));
+    grid-template-rows: 3rem repeat(3, minmax(6rem, auto));
+    border: 1px solid var(--line);
+    border-radius: .8rem;
+    background: var(--surface);
+}
+.schedule-hours, .schedule-day { display: grid; grid-row: span 4; grid-template-rows: subgrid; min-width: 0; }
+.schedule-hours { text-align: center; color: var(--muted); font-size: .78rem; }
+.schedule-day { border-left: 1px solid var(--line); }
+.schedule-day-heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    padding: .35rem;
+    color: var(--muted);
+    font-size: .76rem;
+    letter-spacing: 0;
+}
+.schedule-day-heading time { color: var(--ink); font-size: .97rem; font-variant-numeric: tabular-nums; }
+.schedule-day-heading time[aria-current] { padding: .22rem .34rem; border-radius: .34rem; background: var(--accent); color: #fff; }
+.schedule-slot { display: grid; align-content: start; gap: .32rem; min-width: 0; padding: .35rem; border-top: 1px solid var(--line); }
+.schedule-hours .schedule-slot { padding-top: .65rem; }
+.schedule-session {
+    display: grid;
+    gap: .1rem;
+    min-width: 0;
+    padding: .43rem .5rem;
+    border-radius: .44rem;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.schedule-session:hover { background: #dceee1; }
+.schedule-session strong { font-size: .87rem; line-height: 1.3; }
+.schedule-session :is(small, .schedule-session-time) { color: var(--muted); font-size: .75rem; }
+.schedule-session-time { font-variant-numeric: tabular-nums; }
+.schedule-resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.schedule-resource-form { margin-top: .95rem; }
+@media (max-width: 765px) {
+    .schedule-resource-grid { grid-template-columns: minmax(0, 1fr); }
+    .schedule-calendar { display: block; }
+    .schedule-day { display: block; padding: .5rem; border-left: 0; }
+    .schedule-day + .schedule-day { border-top: 1px solid var(--line); }
+    .schedule-hours, .schedule-day-empty, .schedule-day .schedule-slot:not(:has(.schedule-session)) { display: none; }
+    .schedule-day-heading { justify-content: start; padding: .15rem .35rem; }
+    .schedule-day .schedule-slot { padding: .28rem; border-top: 0; }
+    .schedule-session { grid-template-columns: minmax(4.3rem, auto) minmax(0, 1fr); align-items: baseline; column-gap: .5rem; min-height: 2.75rem; }
+    .schedule-session small { grid-column: 2; }
+    .schedule-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+}
+
 .dashboard-grid .panel { padding: 0; border-radius: .7rem; box-shadow: none; }
 .dashboard-grid .panel-heading { margin: 0; padding: .94rem 1rem; }
 .dashboard-grid .panel-heading h2 { font-size: 1.02rem; }

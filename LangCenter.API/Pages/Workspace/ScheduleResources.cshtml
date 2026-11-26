@@ -1,0 +1,80 @@
+@page "/workspace/schedule/resources"
+@model LangCenter.API.Pages.Workspace.ScheduleResourcesModel
+<a class="back-link" asp-page="/Workspace/Schedule">← Lịch học</a>
+<header class="page-heading">
+    <h1>Phòng và giảng viên</h1>
+</header>
+<div class="schedule-resource-grid">
+    <section class="panel" aria-labelledby="rooms-title">
+        <div class="panel-heading"><h2 id="rooms-title">Phòng học</h2><span class="badge">@Model.Resources.Rooms.Count phòng</span></div>
+        @if (Model.Resources.Rooms.Count == 0)
+        {
+            <p class="empty">Chưa có phòng học.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Mã phòng</th><th scope="col">Tên phòng</th></tr></thead>
+                <tbody>
+                    @foreach (var room in Model.Resources.Rooms)
+                    {
+                        <tr><td><strong>@room.Code</strong></td><td>@room.Name</td></tr>
+                    }
+                </tbody>
+            </table></div>
+        }
+        <form method="post" asp-page-handler="Room" class="form-stack schedule-resource-form">
+            <div class="field">
+                <label asp-for="Room.Code">Mã phòng</label>
+                <input asp-for="Room.Code" required />
+                <span asp-validation-for="Room.Code" class="validation"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Room.Name">Tên phòng</label>
+                <input asp-for="Room.Name" required />
+                <span asp-validation-for="Room.Name" class="validation"></span>
+            </div>
+            @if (Model.RoomRejected)
+            {
+                <div asp-validation-summary="ModelOnly" class="validation schedule-validation" role="alert"></div>
+            }
+            <button class="button primary" type="submit">Thêm phòng</button>
+        </form>
+    </section>
+    <section class="panel" aria-labelledby="instructors-title">
+        <div class="panel-heading"><h2 id="instructors-title">Giảng viên</h2><span class="badge">@Model.Resources.Instructors.Count giảng viên</span></div>
+        @if (Model.Resources.Instructors.Count == 0)
+        {
+            <p class="empty">Chưa có giảng viên.</p>
+        }
+        else
+        {
+            <div class="table-scroll"><table>
+                <thead><tr><th scope="col">Mã giảng viên</th><th scope="col">Họ và tên</th></tr></thead>
+                <tbody>
+                    @foreach (var teacher in Model.Resources.Instructors)
+                    {
+                        <tr><td><strong>@teacher.Code</strong></td><td>@teacher.FullName</td></tr>
+                    }
+                </tbody>
+            </table></div>
+        }
+        <form method="post" asp-page-handler="Instructor" class="form-stack schedule-resource-form">
+            <div class="field">
+                <label asp-for="Instructor.Code">Mã giảng viên</label>
+                <input asp-for="Instructor.Code" required />
+                <span asp-validation-for="Instructor.Code" class="validation"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Instructor.FullName">Họ và tên</label>
+                <input asp-for="Instructor.FullName" required />
+                <span asp-validation-for="Instructor.FullName" class="validation"></span>
+            </div>
+            @if (Model.InstructorRejected)
+            {
+                <div asp-validation-summary="ModelOnly" class="validation schedule-validation" role="alert"></div>
+            }
+            <button class="button primary" type="submit">Thêm giảng viên</button>
+        </form>
+    </section>
+</div>

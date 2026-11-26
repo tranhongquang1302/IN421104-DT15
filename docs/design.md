@@ -75,12 +75,37 @@ classDiagram
         Open
         Started
     }
+    class Room {
+        +Guid Id
+        +string Code
+        +string Name
+        +Create(code, name) Room
+    }
+    class Instructor {
+        +Guid Id
+        +string Code
+        +string FullName
+        +Create(code, fullName) Instructor
+    }
+    class ClassSession {
+        +Guid Id
+        +Guid TrainingClassId
+        +Guid RoomId
+        +Guid InstructorId
+        +DateTime StartsAt
+        +DateTime EndsAt
+        +Create(trainingClassId, roomId, instructorId, startsAt, endsAt) ClassSession
+        +Reschedule(roomId, instructorId, startsAt, endsAt)
+    }
     Student "1" --> "0..*" Enrollment
     TrainingClass "1" --> "0..*" Enrollment
     TrainingClass --> ClassStatus
     Enrollment "1" --> "0..*" Payment
     Enrollment "1" --> "0..1" ExamAdmission
     Enrollment "1" --> "0..1" Certificate
+    TrainingClass "1" --> "0..*" ClassSession
+    Room "1" --> "0..*" ClassSession
+    Instructor "1" --> "0..*" ClassSession
 ```
 
 `TrainingClass.Launch(enrollmentCount, startedAt)` kiểm tra trạng thái và ngưỡng sĩ số. Handler của Application lấy số ghi danh từ repository và điều phối việc lưu trạng thái. Handler dự thi khóa lượt ghi danh trong transaction, đọc tổng học phí đã thu và trạng thái lớp, rồi dùng `ExamAdmission.Create(...)` để áp dụng QT05. Khóa duy nhất trên `EnrollmentId` bảo đảm mỗi lượt ghi danh có một xác nhận.
@@ -119,6 +144,9 @@ Strategy là mẫu được chọn từ bốn mẫu của C2. Luồng xuất bá
 | `payments` | `Id`, `EnrollmentId`, `Amount`, `RequestId`, `PaidAt` | Khóa ngoại đến ghi danh, số tiền dương, mã yêu cầu duy nhất trong mỗi lượt ghi danh nếu được cung cấp |
 | `exam_admissions` | `Id`, `EnrollmentId`, `AdmittedAt` | Tối đa một bản ghi cho mỗi lượt ghi danh |
 | `certificates` | `Id`, `EnrollmentId`, `LookupCode`, `IssuedAt` | Duy nhất theo `EnrollmentId` và theo `LookupCode` |
+| `rooms` | `Id`, `Code`, `Name` | Duy nhất theo mã phòng chuẩn hóa |
+| `instructors` | `Id`, `Code`, `FullName` | Duy nhất theo mã giảng viên chuẩn hóa |
+| `class_sessions` | `Id`, `TrainingClassId`, `RoomId`, `InstructorId`, `StartsAt`, `EndsAt` | Khóa ngoại đến lớp, phòng, giảng viên. Giờ kết thúc phải sau giờ bắt đầu. |
 
 ```mermaid
 erDiagram
@@ -127,6 +155,9 @@ erDiagram
     ENROLLMENTS ||--o{ PAYMENTS : receives
     ENROLLMENTS ||--o| EXAM_ADMISSIONS : permits
     ENROLLMENTS ||--o| CERTIFICATES : earns
+    TRAINING_CLASSES ||--o{ CLASS_SESSIONS : schedules
+    ROOMS ||--o{ CLASS_SESSIONS : hosts
+    INSTRUCTORS ||--o{ CLASS_SESSIONS : teaches
 ```
 
 Dùng `uuid` cho các ID, `numeric(14,0)` cho tiền và UTC với độ chính xác đến micro giây cho thời điểm phát sinh. Dùng migration để tạo và sửa lược đồ khi bổ sung entity. Identity quản lý bảng tài khoản và vai trò. Mã tra cứu chứng chỉ là giá trị ngẫu nhiên độc lập với ID và dữ liệu học viên.
@@ -148,6 +179,11 @@ Tạo học viên và tra cứu ghi danh dùng chung cách chuẩn hóa email. P
 | GET | `/api/classes/{id}` | Admin, Registrar | `200` chi tiết lớp |
 | POST | `/api/classes/{classId}/enrollments` | Admin, Registrar | `201` lượt ghi danh mới |
 | POST | `/api/classes/{id}/launch` | Admin, Registrar | `200` lớp đã khai giảng |
+| GET | `/api/schedule?week={date}&roomId={id}&classId={id}` | Admin, Registrar | `200` lịch tuần có bộ lọc tùy chọn |
+| GET | `/api/schedule/resources` | Admin, Registrar | `200` danh mục phòng và giảng viên |
+| POST | `/api/schedule/rooms`, `/api/schedule/instructors` | Admin, Registrar | `201` tài nguyên mới |
+| POST | `/api/schedule/sessions` | Admin, Registrar | `201` buổi học mới |
+| PUT | `/api/schedule/sessions/{id}` | Admin, Registrar | `200` buổi học đã đổi lịch |
 | GET | `/api/enrollments?studentEmail={email}` | Admin, Cashier | `200` các lượt ghi danh của học viên theo email |
 | POST | `/api/enrollments/{id}/payments` | Admin, Cashier | `201` khoản thanh toán được ghi nhận |
 | GET | `/api/enrollments/{id}/balance` | Admin, Registrar, Cashier | `200` với số phải thu, đã thu và còn nợ |
@@ -169,6 +205,16 @@ Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. 
 - Infrastructure sắp xếp theo tên rồi theo ID để thứ tự ổn định khi hai tên trùng nhau. EF Core chạy `Skip` và `Take` trên cơ sở dữ liệu. Báo cáo công nợ tính tổng của toàn lớp và đọc trang trong cùng một giao dịch đọc nhất quán. Đường dẫn tải CSV lấy toàn bộ lượt ghi danh của lớp.
 - Razor Pages mặc định hiển thị 10 dòng và có nút **Trang trước** và **Trang sau** khi có trang tương ứng. URL web dùng `pageNumber` và `pageSize`. Các liên kết phân trang của bảng công nợ giữ lớp đang xem.
 
+### Xếp lịch học
+
+Admin và Giáo vụ dùng cùng policy `ManageClasses` trên API và giao diện. Từ **Lịch học**, người dùng xem lịch tuần, lọc theo phòng và mở danh mục để thêm phòng hoặc giảng viên. Từ trang chi tiết lớp, **Xếp lịch** mở form đã chọn lớp. Chọn một buổi trên lịch để thay đổi phòng, giảng viên hoặc thời gian. Lưới tuần chia theo ngày và theo ca sáng, chiều, tối. Trên màn hình nhỏ, các buổi được trình bày theo danh sách ngày.
+
+Ngày, giờ, phòng và giảng viên lấy từ từng buổi học. Lịch tuần, danh sách lớp, ghi danh và báo cáo công nợ lấy tên từ cùng hồ sơ lớp.
+
+Mỗi buổi diễn ra trong một ngày theo giờ Việt Nam. Hai API lưu lịch dùng các trường `classId`, `roomId`, `instructorId`, `date`, `startTime` và `endTime`. Ngày có dạng `2026-11-23` và giờ có dạng `18:00`. Application chuyển giờ sang UTC để lưu và trả `startsAt`, `endsAt`. Lịch tuần bắt đầu từ thứ hai của ngày `week`. Mặc định là tuần hiện tại theo UTC+07:00.
+
+`SaveClassSessionCommandHandler` điều phối việc khóa và lưu qua `IUnitOfWork`. Infrastructure khóa lần lượt lớp, phòng và giảng viên trong PostgreSQL trước khi truy vấn các buổi chồng lấn. Hai khoảng giờ giao nhau khi giờ bắt đầu của mỗi buổi nhỏ hơn giờ kết thúc của buổi kia. Các buổi nối tiếp đúng giờ được phép lưu. Đổi lịch loại chính bản ghi đang sửa khỏi phép kiểm tra. Nếu trùng lớp, phòng hoặc giảng viên, API trả `409 Conflict` và Razor Pages giữ dữ liệu form, kèm lớp và giờ của buổi trùng.
+
 ### Lỗi HTTP
 
 | HTTP | Trường hợp |
@@ -177,7 +223,7 @@ Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. 
 | `401` | Thiếu thông tin xác thực hợp lệ hoặc đăng nhập sai |
 | `403` | Tài khoản đã xác thực thiếu quyền |
 | `404` | Không tìm thấy tài nguyên hoặc mã tra cứu |
-| `409` | Email học viên đã được sử dụng, ghi danh trùng hoặc yêu cầu tạo bản ghi đã tồn tại |
+| `409` | Email học viên, mã phòng hoặc mã giảng viên đã được sử dụng. Ghi danh trùng, lịch học chồng lấn hoặc yêu cầu tạo bản ghi đã tồn tại. |
 | `429` | Vượt giới hạn đăng nhập theo địa chỉ IP |
 | `500` | Lỗi hệ thống |
 
@@ -192,7 +238,9 @@ Các ca đơn vị dùng xUnit và gọi trực tiếp phương thức Domain th
 | QT01 | `TrainingClassTests` | Thiếu, bằng và vượt ngưỡng sĩ số. Gọi khai giảng lần nữa giữ nguyên thời điểm khai giảng. |
 | QT04 | `PaymentTests` | Khoản thu hợp lệ, các biên số tiền, số âm, số 0, số lẻ, mã ghi danh hoặc mã yêu cầu rỗng. |
 | QT05 | `ExamAdmissionTests` | Lớp đã khai giảng với học phí đóng đủ hoặc bằng 0, lớp đang mở và số tiền đã đóng khác học phí phải thu. |
+| QT08 | `ClassSessionTests` | Khung giờ hợp lệ và thao tác đổi lịch với giờ kết thúc bằng hoặc trước giờ bắt đầu. |
 
 - `ClassTuitionReportStrategyTests` kiểm tra hai định dạng trên cùng dữ liệu, dòng tổng và ký tự đặc biệt trong CSV.
+- `ScheduleApiTests` và `SchedulePortalTests` kiểm tra phân quyền, mã phòng duy nhất, xếp lịch, giữ form khi báo lỗi và đổi lịch. `PostgresScheduleApiTests` gửi hai yêu cầu vào cùng phòng và xác nhận chỉ một buổi được lưu.
 - Kiểm thử tích hợp xác nhận đăng nhập, phân quyền, ghi danh, tải báo cáo CSV, tra cứu chứng chỉ và các quy tắc phụ thuộc dữ liệu. Các ca phân trang kiểm tra thứ tự dòng, giới hạn trang, tổng bản ghi và tổng công nợ toàn lớp. Các ca PostgreSQL kiểm tra giao dịch đồng thời, như thu vượt công nợ hoặc xác nhận dự thi khi khoản thu cuối đang được ghi nhận.
 - Docker Compose chạy API và PostgreSQL. GitHub Actions chạy restore, build và test cho các thay đổi vào `main`. Coverlet tạo báo cáo Cobertura và GitHub Actions lưu kèm kết quả test TRX.
