@@ -104,8 +104,8 @@ Trên cơ sở dữ liệu mới, đợt mặc định `K01` tạo 30 lớp, 1.0
 
 | Kịch bản | Kết quả dùng để demo |
 | --- | --- |
-| Tiếng Anh A1 | Lớp đã khai giảng với 36 học viên. `PartialEnrollmentId` đã đóng 1.200.000 đồng và còn nợ 1.200.000 đồng. `EligibleEnrollmentId` đã đóng đủ, được xác nhận dự thi và sẵn sàng để cấp chứng chỉ. |
-| Tiếng Nhật N5 | Lớp `UnderfilledClassId` có 31 trong 32 học viên cần thiết. Thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm một học viên. |
+| Tiếng Anh A1 – Nhóm 01 | Lớp đã khai giảng với 36 học viên. `PartialEnrollmentId` đã đóng 1.200.000 đồng và còn nợ 1.200.000 đồng. `EligibleEnrollmentId` đã đóng đủ, được xác nhận dự thi và sẵn sàng để cấp chứng chỉ. |
+| Tiếng Nhật N5 – Nhóm 01 | Lớp `UnderfilledClassId` có 31 trong 32 học viên cần thiết. Thử khai giảng để thấy lỗi thiếu sĩ số, rồi dùng `WaitingStudentId` để ghi danh thêm một học viên. |
 | Tiếng Anh B1 | Lớp đã khai giảng với 37 học viên. Mở `CertificateVerifyUrl` để xem một chứng chỉ đã cấp trên trang tra cứu công khai. |
 
 Lệnh tạo cả bộ dữ liệu chạy một lần cho mỗi mã đợt. Để tạo một bộ dữ liệu độc lập, chạy `pwsh -File scripts/Seed-Demo.ps1 -BatchCode K02`.

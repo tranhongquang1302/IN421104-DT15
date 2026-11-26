@@ -64,11 +64,11 @@ $sampleNames = @(
 # Returning learners reuse their student index across classes. Exam and certificate positions are within each roster.
 $classPlans = @(
     @{
-        code = 'A1'; name = 'Tiếng Anh A1 – Tối 2-4-6'; minimum = 36; fee = 2400000
+        code = 'A1'; name = 'Tiếng Anh A1 – Nhóm 01'; minimum = 36; fee = 2400000
         roster = @(0..12) + @(84..106); launch = $true; exams = @(1, 2, 5, 8)
     }
     @{
-        code = 'N5'; name = 'Tiếng Nhật N5 – Tối 3-5-7'; minimum = 32; fee = 3200000
+        code = 'N5'; name = 'Tiếng Nhật N5 – Nhóm 01'; minimum = 32; fee = 3200000
         roster = @(13..21) + @(107..128); launch = $false
     }
     @{
@@ -76,7 +76,7 @@ $classPlans = @(
         roster = @(23..36) + @(129..151); launch = $true; exams = @(0, 2, 5, 8, 11); certificates = @(0, 2, 8)
     }
     @{
-        code = 'A2'; name = 'Tiếng Anh A2 – Tối 3-5-7'; minimum = 35; fee = 2800000
+        code = 'A2'; name = 'Tiếng Anh A2 – Nhóm 01'; minimum = 35; fee = 2800000
         roster = @(37..47) + @(152..175); launch = $false
     }
     @{

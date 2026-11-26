@@ -209,7 +209,7 @@ Báo cáo công nợ dùng một query đọc riêng theo cấu trúc của C4. 
 
 Admin và Giáo vụ dùng cùng policy `ManageClasses` trên API và giao diện. Từ **Lịch học**, người dùng xem lịch tuần, lọc theo phòng và mở danh mục để thêm phòng hoặc giảng viên. Từ trang chi tiết lớp, **Xếp lịch** mở form đã chọn lớp. Chọn một buổi trên lịch để thay đổi phòng, giảng viên hoặc thời gian. Lưới tuần chia theo ngày và theo ca sáng, chiều, tối. Trên màn hình nhỏ, các buổi được trình bày theo danh sách ngày.
 
-Ngày, giờ, phòng và giảng viên lấy từ từng buổi học. Lịch tuần, danh sách lớp, ghi danh và báo cáo công nợ lấy tên từ cùng hồ sơ lớp.
+Dữ liệu mẫu dùng tên nhóm cho các lớp A1, A2 và N5 có thể học nhiều ca. Ngày, giờ, phòng và giảng viên lấy từ từng buổi học. Lịch tuần, danh sách lớp, ghi danh và báo cáo công nợ lấy tên từ cùng hồ sơ lớp.
 
 Mỗi buổi diễn ra trong một ngày theo giờ Việt Nam. Hai API lưu lịch dùng các trường `classId`, `roomId`, `instructorId`, `date`, `startTime` và `endTime`. Ngày có dạng `2026-11-23` và giờ có dạng `18:00`. Application chuyển giờ sang UTC để lưu và trả `startsAt`, `endsAt`. Lịch tuần bắt đầu từ thứ hai của ngày `week`. Mặc định là tuần hiện tại theo UTC+07:00.
 
